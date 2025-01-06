@@ -1,26 +1,26 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
+// prisma/schema.prisma
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cvs       CV[]
+generator client {
+  provider = "prisma-client-js"
 }
 
-model CV {
+model User {
+  id    String @id @default(cuid())
+  email String @unique
+  cvs   Cv[]
+}
+
+model Cv {
   id        String   @id @default(cuid())
-  userId    String
   filename  String
   fileUrl   String
   analysis  String?
-  createdAt DateTime @default(now())
+  userId    String
   user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
