@@ -1,7 +1,17 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    serverComponentsExternalPackages: ['pdf2json'],
+  },
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      canvas: false,
+      encoding: false
+    };
+    return config;
+  }
 };
 
-export default nextConfig;
+module.exports = nextConfig;
