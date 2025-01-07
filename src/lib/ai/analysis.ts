@@ -78,7 +78,7 @@ Job Description:
 {jobDescription}
 
 Return a JSON response with:
-1. technicalSkills: Array of matching technical skills or additional skills that can add value, only include skills with demonstrable experience, projects and certificats
+1. technicalSkills: Array of matching technical skills or additional skills that can add value, include every technical skill
 2. softSkills: Array of matching soft skills, must be evidenced in CV
 3. matchScore: Integer 0-100, following the scoring guidelines above
 4. missingSkills: Array of missing requirements, both technical and soft and don't add education or language requirements
