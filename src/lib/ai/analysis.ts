@@ -17,50 +17,48 @@ const model = new ChatOpenAI({
   temperature: 0.7,
   openAIApiKey: process.env.OPENAI_API_KEY
 });
-// Add explicit scoring criteria
 const scoringGuidelines = `
-Your scoring must follow these strict rules:
+Your scoring should follow these guidelines:
 - Base score starts at 0
 - Each required technical skill present: +5 points
 - Each required soft skill present: +3 points
 - Years of experience match: +15 points
 - Education requirements match: +10 points
 - Industry experience match: +10 points
-- Missing critical skills: -10 points each
-- Insufficient experience: -15 points
-- The final score cannot exceed 85 without exceptional qualifications
-- A score above 60 requires meeting all critical requirements
-- No score inflation - be brutally honest
+- Missing critical skills: -5 points each
+- Insufficient experience: -10 points
+- The final score can exceed 85 if qualifications are strong
+- A score above 60 generally requires meeting most critical requirements
+- Be fair and balanced in your assessment
 `;
 
 const responseValidation = `
-Your analysis must include:
-- At least 3 concrete missing skills if score is below 70
-- At least 5 specific improvements
-- Detailed justification for the match score
-- Clear explanation why critical requirements are not met
+Your analysis should include:
+- At least 2 concrete missing skills if the score is below 70
+- At least 3 specific suggestions for improvement
+- A clear explanation of the match score
+- A balanced view of strengths and areas for development
 `;
 
 const emailGuidelines = `
-The generated email must:
-- Acknowledge any significant gaps honestly
-- Focus only on directly relevant experience
-- Not oversell or exaggerate capabilities
-- Include specific examples of relevant projects/achievements
-- Keep length between 150-200 words
-`
+The generated email should:
+- Acknowledge any significant gaps in a constructive manner
+- Focus on relevant experience and potential
+- Avoid overselling or exaggerating capabilities
+- Include specific examples of relevant projects or achievements
+- Keep the length between 150-200 words
+`;
 
 const chatPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are a professional CV analyzer with a reputation for being ruthlessly honest and critical. Your analysis must be data-driven and follow these principles:
+    `You are a professional CV analyzer known for providing balanced and constructive feedback. Your analysis should be data-driven and follow these principles:
     
-    1. Never inflate scores or qualifications
-    2. Flag every mismatch between requirements and experience
-    3. Consider both hard and soft requirements as critical
-    4. Maintain consistent scoring across all analyses
-    5. Provide specific, actionable feedback
-    6. Education must not match exactly
+    1. Be fair and balanced in your assessment
+    2. Highlight both strengths and areas for improvement
+    3. Consider both hard and soft requirements
+    4. Provide specific, actionable feedback
+    5. Allow for some flexibility in matching education and experience
     
     ${scoringGuidelines}
     
@@ -71,7 +69,7 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
   ],
   [
     "human",
-    `Analyze this CV and job description with strict criteria:
+    `Analyze this CV and job description with the provided criteria:
 
 CV:
 {cv}
@@ -80,19 +78,19 @@ Job Description:
 {jobDescription}
 
 Return a JSON response with:
-1. technicalSkills: Array of matching technical skills, only include skills with demonstrable experience
+1. technicalSkills: Array of matching technical skills or additional skills that can add value, only include skills with demonstrable experience, projects and certificats
 2. softSkills: Array of matching soft skills, must be evidenced in CV
-3. matchScore: Integer 0-100, following strict scoring guidelines above
-4. missingSkills: Array of ALL missing requirements, both technical and soft
+3. matchScore: Integer 0-100, following the scoring guidelines above
+4. missingSkills: Array of missing requirements, both technical and soft and don't add education or language requirements
 5. improvements: Array of specific, actionable improvements with examples
 6. generatedEmail: Object with subject and body properties for a professional application email
 7. status: "complete"
 
-The analysis must be brutally honest and highlight all gaps.`
+The analysis should be fair, highlighting both strengths and areas for development.`
   ],
   [
     "assistant",
-    "I will perform a rigorous analysis following the strict criteria and scoring guidelines provided."
+    "I will perform a thorough and balanced analysis following the provided criteria and guidelines."
   ],
   new MessagesPlaceholder("chat_history")
 ]);
