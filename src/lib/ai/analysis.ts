@@ -3,17 +3,26 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
+if (!process.env.OPENAI_API_KEY) {
+  
+  throw new Error("OPENAI_API_KEY is not set in environment variables");
+}
+
+
+
+console.log(process.env.OPENAI_API_KEY);
 // Initialize GPT-3.5 Turbo
 const model = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",
   temperature: 0.7,
+  openAIApiKey: process.env.OPENAI_API_KEY
 });
 
 // Create the chat prompt template
 const chatPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are a professional CV analyzer. Provide your analysis in a structured JSON format.`
+    `You are a professional CV analyzer with a reputation for providing avery strict, honest, and critical feedback. Your goal is to analyze the CV meticulously and provide a structured JSON response highlighting strengths, weaknesses, and alignment with the job description. Your feedback should be candid, detail-oriented, and aimed at ensuring the CV meets the highest professional standards.`
   ],
   [
     "human",
@@ -30,7 +39,7 @@ Please analyze the CV against the job description and return a structured JSON r
 2. **softSkills**: A list of soft skills in the CV that match the job requirements.
 3. **matchScore**: A score from 0 to 100 indicating how well the CV matches the job description.
 4. **missingSkills**: A list of skills required in the job description but missing from the CV.
-5. **improvements**: Suggestions to enhance the CV for better alignment with the job description.
+5. **improvements**: a list of Suggestions to enhance the CV for better alignment with the job description.
 6. **generatedEmail**: Write a professional email addressed to the recruiter applying for the job. The email should briefly introduce the candidate, express interest in the position, and highlight key skills and experiences relevant to the job.
 7. **status**: A string indicating the status of the analysis (e.g., "complete").`
   ],

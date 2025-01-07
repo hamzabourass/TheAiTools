@@ -1,39 +1,24 @@
-"use client"
-
+"use client";
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Mail, FileText, Send, Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react"
+import { Mail, FileText, Send, Upload, AlertCircle, Loader2 } from "lucide-react"
 import * as z from "zod"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// Form validation schema
 const formSchema = z.object({
   email: z.string().email("Valid email required"),
   jobDescription: z.string().min(1, "Job description required"),
   cv: z.any()
-    .refine((file) => file?.length > 0, "CV file is required")
-    .refine((file) => {
-      if (file?.length > 0) {
-        return file[0]?.type === "application/pdf"
-      }
-      return false
-    }, "Must be a PDF file")
-    .refine((file) => {
-      if (file?.length > 0) {
-        return file[0]?.size <= 5 * 1024 * 1024 // 5MB
-      }
-      return false
-    }, "File size must be less than 5MB")
+    .refine((file) => file?.length > 0, "CV file required")
+    .refine((file) => file?.[0]?.type === "application/pdf", "Must be a PDF file")
+    .refine((file) => file?.[0]?.size <= 5 * 1024 * 1024, "File size must be less than 5MB")
 })
 
 type FormData = z.infer<typeof formSchema>
-
-// API Response Types
 type AnalysisResult = {
   technicalSkills: string[];
   softSkills: string[];
@@ -65,7 +50,7 @@ export default function Home() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file && file.type === 'application/pdf') {
+    if (file?.type === 'application/pdf') {
       setFileName(file.name)
     }
   }
@@ -88,8 +73,6 @@ export default function Home() {
       if (!response.ok) throw new Error("Analysis failed")
 
       const result = await response.json()
-      console.log('API Response:', result)
-      
       setAnalysis({
         ...initialAnalysisState,
         ...result,
@@ -105,7 +88,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto py-10 px-4">
+      <div className="container py-10 px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight">CV Assistant</h1>
           <p className="text-lg text-muted-foreground">
@@ -113,14 +96,9 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-7xl mx-auto">
-          {/* Left side - Form */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Send className="w-5 h-5" />
-              <h2 className="text-xl font-semibold">Job Application Details</h2>
-            </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          {/* Form Section */}
+          <div className="dark:bg-gray-800 p-6 shadow-lg h-fit">
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
@@ -159,7 +137,7 @@ export default function Home() {
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
                   <Upload className="w-4 h-4" />
-                  Upload CV
+                  Upload CV (PDF, max 5MB)
                 </label>
                 <Input 
                   type="file"
@@ -173,16 +151,10 @@ export default function Home() {
                     {form.formState.errors.cv.message.toString()}
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Accepted format: PDF (Max size: 5MB)
-                </p>
-
                 {fileName && (
-                  <div className="mt-4 border rounded-lg p-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <FileText className="w-6 h-6 text-blue-500" />
-                      <p className="text-sm font-medium">{fileName}</p>
-                    </div>
+                  <div className="flex items-center gap-2 text-sm text-blue-600">
+                    <FileText className="w-4 h-4" />
+                    {fileName}
                   </div>
                 )}
               </div>
@@ -207,153 +179,103 @@ export default function Home() {
             </form>
           </div>
 
-          {/* Right side - Analysis Results */}
-          <div className="space-y-6">
+              <div className="relative">
+                <div className="absolute left-0 top-0 h-full w-px bg-gray-200 dark:bg-gray-700" />
+                <div className="pl-8">
             {analysis.status === 'idle' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ready for Analysis</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Fill out the form and upload your CV to get started with the analysis.
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="h-full flex items-center justify-center text-center p-8 text-muted-foreground">
+                Fill out the form and upload your CV to get started
+              </div>
             )}
 
             {analysis.status === 'analyzing' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Analyzing Your Application
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">
-                    Please wait while we analyze your CV...
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
+                <p>Analyzing your application...</p>
+              </div>
             )}
 
             {analysis.status === 'complete' && (
-              <>
-                {/* Technical Skills */}
-                {analysis.technicalSkills.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Technical Skills</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {analysis.technicalSkills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b pb-4">
+                  <h2 className="text-2xl font-bold">Analysis Results</h2>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-blue-600">{analysis.matchScore}%</div>
+                    <div className="text-sm text-muted-foreground">Match Score</div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Skills Analysis */}
+                  <div className="space-y-4">
+                    {analysis.technicalSkills.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">Technical Skills</p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.technicalSkills.map((skill, index) => (
+                            <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    )}
 
-                {/* Soft Skills */}
-                {analysis.softSkills.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Soft Skills</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {analysis.softSkills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                    {analysis.softSkills.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">Soft Skills</p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.softSkills.map((skill, index) => (
+                            <span key={index} className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    )}
 
-                {/* Match Score */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Match Score</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-4xl font-bold mb-2">{analysis.matchScore}%</div>
-                    <p className="text-muted-foreground">
-                      This score indicates how well the candidate's CV matches the job requirements.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                {/* Missing Skills */}
-                {analysis.missingSkills.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Missing Skills</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {analysis.missingSkills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                    {analysis.missingSkills.length > 0 && (
+                      <div>
+                        <p className="text-sm font-medium mb-2">Missing Skills</p>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.missingSkills.map((skill, index) => (
+                            <span key={index} className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
+                    )}
+                  </div>
 
-                {/* Improvements */}
-                {analysis.improvements.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Suggested Improvements</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                  {/* Improvements */}
+                  {analysis.improvements.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Suggested Improvements</p>
                       <ul className="space-y-2">
                         {analysis.improvements.map((improvement, index) => (
                           <li key={index} className="flex items-start gap-2">
                             <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-                            <span>{improvement}</span>
+                            <span className="text-sm">{improvement}</span>
                           </li>
                         ))}
                       </ul>
-                    </CardContent>
-                  </Card>
-                )}
+                    </div>
+                  )}
 
-                {/* Generated Email */}
-                {analysis.generatedEmail && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Generated Email</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+                  {/* Generated Email */}
+                  {analysis.generatedEmail && (
+                    <div>
+                      <p className="text-sm font-medium mb-2">Generated Email</p>
                       <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-                        <p className="text-sm text-muted-foreground mb-2">
-                        
-                        </p>
-                        <div className="text-muted-foreground whitespace-pre-wrap">
+                        <div className="text-sm whitespace-pre-wrap">
                           {analysis.generatedEmail}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {analysis.status === 'error' && (
@@ -364,9 +286,10 @@ export default function Home() {
                 </AlertDescription>
               </Alert>
             )}
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  )
+        </div>    
+  );
 }

@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['pdf2json'],
-  },
+  serverExternalPackages: ['pdf2json'],
   webpack: (config) => {
     config.resolve.alias.canvas = false;
     config.resolve.fallback = {
