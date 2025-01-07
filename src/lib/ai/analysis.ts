@@ -46,51 +46,71 @@ The generated email should:
 - Focus on relevant experience and potential
 - Avoid overselling or exaggerating capabilities
 - Include specific examples of relevant projects or achievements
-- Keep the length between 150-200 words
+- Keep the length between 200-300 words
 `;
 
 const chatPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are a professional CV analyzer known for providing balanced and constructive feedback. Your analysis should be data-driven and follow these principles:
+    `You are a professional CV analyzer known for providing detailed and thorough feedback. Pay special attention to:
     
-    1. Be fair and balanced in your assessment
-    2. Highlight both strengths and areas for improvement
-    3. Consider both hard and soft requirements
-    4. Provide specific, actionable feedback
-    5. Allow for some flexibility in matching education and experience
+    1. Skills mentioned in ALL sections of the CV:
+       - Work experience descriptions
+       - Project details
+       - Certifications and courses
+       - Technical skills section
+       - Academic projects
+       - Volunteering/extracurricular activities
     
+    2. Implicit skills that can be inferred from:
+       - Technologies used in projects
+       - Tools mentioned in work experience
+       - Methods/processes described in achievements
+       - Skills demonstrated through certifications
+       
+    3. Transferable skills from:
+       - Previous roles even if in different industries
+       - Academic background
+       - Certification programs
+       - Project management experience
+
     ${scoringGuidelines}
-    
     ${responseValidation}
-    
     ${emailGuidelines}
     `
   ],
   [
     "human",
-    `Analyze this CV and job description with the provided criteria:
+    `Analyze this Resume and job description thoroughly:
+    Resume: {cv}
+    Job Description: {jobDescription}
 
-CV:
-{cv}
+    Return a JSON response with:
+    1. technicalSkills: Array of ALL relevant skills including:
+       - Explicitly stated skills
+       - Skills from certificates/training
+       - Skills demonstrated in job experiences
+       - Tools/technologies used in projects
+       - Related or transferable technical skills
+    
+    2. softSkills: Array of ALL soft skills evidenced by:
+       - Achievement descriptions
+       - Leadership roles
+       - Project collaboration
+       - Client interactions
+       - Problem-solving examples
+    
+    3. matchScore: Integer 0-100
+    4. missingSkills: Array of missing requirements
+    5. improvements: Array of specific improvements also include improvements about the users resume highlighting what is currently missing and what is currently present
+    6. generatedEmail: Gnerate an email to send to the recuiter. Return an Object with subject and body the body should be formatted with spaces like professional emails.
+    7. status: "complete"
 
-Job Description:
-{jobDescription}
-
-Return a JSON response with:
-1. technicalSkills: Array of matching technical skills or additional skills that can add value, include every technical skill
-2. softSkills: Array of matching soft skills, must be evidenced in CV
-3. matchScore: Integer 0-100, following the scoring guidelines above
-4. missingSkills: Array of missing requirements, both technical and soft and don't add education or language requirements
-5. improvements: Array of specific, actionable improvements with examples
-6. generatedEmail: Object with subject and body properties for a professional application email
-7. status: "complete"
-
-The analysis should be fair, highlighting both strengths and areas for development.`
+    Ensure NO relevant skills are missed from any section of the CV.`
   ],
   [
     "assistant",
-    "I will perform a thorough and balanced analysis following the provided criteria and guidelines."
+    "I will conduct an exhaustive analysis, carefully extracting ALL skills from every section of the CV."
   ],
   new MessagesPlaceholder("chat_history")
 ]);
