@@ -36,13 +36,14 @@ export function EmailDialog({
 }: EmailDialogProps) {
   const [open, setOpen] = useState(false)
   const [emailData, setEmailData] = useState<EmailData>({
-    to: '',
-    subject: '',
-    message: ''
+    to: recipientEmail,
+    subject: emailSubject,
+    message: emailBody
   })
 
+  // Update email data when props change or dialog opens
   useEffect(() => {
-    if (open) {
+    if (open || recipientEmail || emailSubject || emailBody) {
       setEmailData({
         to: recipientEmail,
         subject: emailSubject,

@@ -3,7 +3,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { SkillTag } from "./SkillTag"
 import { EmailDialog } from "./EmailDialog"
-import { AnalysisResult } from "../types/types"
+import { AnalysisChart } from "./AnalysisChart"
+import { AnalysisResult } from "@/types/types"
 
 type AnalysisResultsProps = {
   analysis: AnalysisResult;
@@ -52,6 +53,11 @@ export function AnalysisResults({
           <div className="text-3xl font-bold text-blue-600">{analysis.matchScore}%</div>
           <div className="text-sm text-muted-foreground">Match Score</div>
         </div>
+      </div>
+
+      {/* Analysis Chart */}
+      <div className="">
+        <AnalysisChart analysis={analysis} />
       </div>
 
       <div className="space-y-6">

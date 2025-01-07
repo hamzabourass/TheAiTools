@@ -7,11 +7,13 @@ import { CVFormData, AnalysisResult, initialAnalysisState } from "@/types/types"
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [analysis, setAnalysis] = useState<AnalysisResult>(initialAnalysisState)
+  const [recipientEmail, setRecipientEmail] = useState("")
   
   async function onSubmit(data: CVFormData) {
     try {
       setIsLoading(true)
       setAnalysis(prev => ({ ...prev, status: 'analyzing' }))
+      setRecipientEmail(data.email) // Save the email when form is submitted
 
       const formData = new FormData()
       formData.append("email", data.email)
@@ -66,7 +68,7 @@ export default function Home() {
             <div className="pl-8">
               <AnalysisResults
                 analysis={analysis}
-                recipientEmail={analysis.status === 'complete' ? '' : ''}
+                recipientEmail={recipientEmail}
                 onSendEmail={handleSendEmail}
               />
             </div>
