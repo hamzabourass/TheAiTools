@@ -90,7 +90,7 @@ export function CVUploadForm({ onSubmit, isLoading }: CVUploadFormProps) {
       <Button 
         type="submit"
         disabled={isLoading}
-        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-6"
+        className="w-full text-white py-6"
       >
         {isLoading ? (
           <>

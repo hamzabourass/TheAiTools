@@ -48,7 +48,7 @@ The generated email must:
 - Not oversell or exaggerate capabilities
 - Include specific examples of relevant projects/achievements
 - Keep length between 150-200 words
-`;
+`
 
 const chatPrompt = ChatPromptTemplate.fromMessages([
   [
@@ -60,6 +60,7 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
     3. Consider both hard and soft requirements as critical
     4. Maintain consistent scoring across all analyses
     5. Provide specific, actionable feedback
+    6. Education must not match exactly
     
     ${scoringGuidelines}
     
@@ -84,7 +85,7 @@ Return a JSON response with:
 3. matchScore: Integer 0-100, following strict scoring guidelines above
 4. missingSkills: Array of ALL missing requirements, both technical and soft
 5. improvements: Array of specific, actionable improvements with examples
-6.  generatedEmail: Write a professional email addressed to the recruiter applying for the job. The email should briefly introduce the candidate, express interest in the position, and highlight key skills and experiences relevant to the job, in Json format email with subject and body .
+6. generatedEmail: Object with subject and body properties for a professional application email
 7. status: "complete"
 
 The analysis must be brutally honest and highlight all gaps.`
