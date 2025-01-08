@@ -11,12 +11,13 @@ if (!process.env.OPENAI_API_KEY) {
 
 
 console.log(process.env.OPENAI_API_KEY);
-// Initialize GPT-3.5 Turbo
+
 const model = new ChatOpenAI({
   modelName: "gpt-3.5-turbo",
   temperature: 0.7,
   openAIApiKey: process.env.OPENAI_API_KEY
 });
+
 const scoringGuidelines = `
 Your scoring should follow these guidelines:
 - Base score starts at 0
@@ -104,7 +105,6 @@ export class CVAnalyzer {
     try {
       console.log('Starting analysis with GPT-3.5...');
 
-      // Validate input variables
       if (!cvText || typeof cvText !== "string") {
         throw new Error('Invalid CV text provided.');
       }
@@ -112,7 +112,6 @@ export class CVAnalyzer {
         throw new Error('Invalid job description provided.');
       }
 
-      // Invoke the chain with the correct input variables
       const response = await chain.invoke({
         cv: cvText,
         jobDescription: jobDescription,
@@ -132,7 +131,6 @@ export class CVAnalyzer {
         const analysis = JSON.parse(jsonMatch[0]);
         console.log('Parsed analysis:', analysis);
 
-        // Ensure all required fields exist
         const defaultAnalysis = {
           technicalSkills: [],
           softSkills: [],
@@ -143,7 +141,6 @@ export class CVAnalyzer {
           status: "complete"
         };
 
-        // Combine default values with actual analysis
         return { ...defaultAnalysis, ...analysis };
       } catch (parseError) {
         console.error('JSON parsing error:', parseError);

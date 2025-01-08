@@ -13,7 +13,7 @@ export default function Home() {
     try {
       setIsLoading(true)
       setAnalysis(prev => ({ ...prev, status: 'analyzing' }))
-      setRecipientEmail(data.email) // Save the email when form is submitted
+      setRecipientEmail(data.email)
 
       const formData = new FormData()
       formData.append("email", data.email)
