@@ -3,7 +3,7 @@ import puppeteer from 'puppeteer';
 import { writeFile } from 'fs/promises';
 import { NextResponse } from 'next/server';
 
-export async function POST(req) {
+export async function POST(req: Request) {
   let browser = null;
   
   try {
@@ -12,7 +12,7 @@ export async function POST(req) {
 
     // Launch browser
     browser = await puppeteer.launch({
-      headless: "new"
+      headless: undefined
     });
     
     const page = await browser.newPage();

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES2017",
     "typeRoots": ["./node_modules/@types", "./types"],
+    "types": ["node", "file-saver"],
 
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,

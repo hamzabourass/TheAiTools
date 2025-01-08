@@ -27,8 +27,6 @@ Your scoring should follow these guidelines:
 - Industry experience match: +10 points
 - Missing critical skills: -5 points each
 - Insufficient experience: -10 points
-- Significant gap in experience (more than 3 years): -20 points
-- Major difference in profile (e.g., switching industries without relevant transferable skills): -15 points
 - The final score can exceed 85 if qualifications are strong
 - A score above 60 generally requires meeting most critical requirements
 - Be fair and balanced in your assessment
@@ -54,7 +52,7 @@ The generated email should:
 const chatPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are a professional CV analyzer known for providing detailed and thorough feedback. Pay special attention to:
+    `You are a strict professional HR known for providing detailed and thorough feedback. Pay special attention to:
     
     1. Skills mentioned in ALL sections of the CV:
        - Work experience descriptions

@@ -13,7 +13,7 @@ export function SignInButton() {
   }
 
   if (session) {
-    redirect("/analyse")
+    redirect("/assistant")
   }
 
   return (
