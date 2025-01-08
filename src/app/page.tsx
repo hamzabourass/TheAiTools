@@ -8,12 +8,293 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card"
-import { FileText, MessageSquare, ArrowRight } from "lucide-react"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { 
+  FileText, 
+  MessageSquare, 
+  ArrowRight, 
+  Brain,
+  FileSearch,
+  MailCheck,
+  FileOutput,
+  List,
+  BookOpen,
+  CheckCircle2,
+  Sparkles
+} from "lucide-react"
 import Link from "next/link"
+import Navbar from "@/components/landing/navbar/Navbar"
+
+const FeatureCard = ({ icon: Icon, title, description, features, linkHref, linkText }) => (
+  <Card className="group hover:shadow-lg transition-all">
+    <CardHeader>
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-5 h-5 text-primary" />
+        <CardTitle>{title}</CardTitle>
+      </div>
+      <CardDescription>{description}</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <ul className="space-y-2 mb-6 text-sm">
+        {features.map((feature, index) => (
+          <li key={index} className="flex items-center gap-2">
+            <ArrowRight className="w-4 h-4 text-primary" />
+            {feature}
+          </li>
+        ))}
+      </ul>
+      <Button variant="secondary" className="w-full" asChild>
+        <Link href={linkHref}>{linkText}</Link>
+      </Button>
+    </CardContent>
+  </Card>
+)
+
+const ResumeAnalyzerDetails = () => (
+  <div className="space-y-6">
+    <h3 className="text-2xl font-semibold">Resume Analyzer Features</h3>
+    <div className="grid md:grid-cols-3 gap-6">
+      <Card>
+        <CardHeader>
+          <FileSearch className="w-5 h-5 text-primary mb-2" />
+          <CardTitle className="text-lg">Smart Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Advanced AI algorithms analyze resumes to identify key skills, experiences, and qualifications.
+            Provides detailed insights about candidate strengths and areas for improvement.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Brain className="w-5 h-5 text-primary mb-2" />
+          <CardTitle className="text-lg">Skills Assessment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Automatically extracts and categorizes technical skills, soft skills, and industry expertise.
+            Matches skills against job requirements and industry standards.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <MailCheck className="w-5 h-5 text-primary mb-2" />
+          <CardTitle className="text-lg">Professional Reports</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Generates comprehensive reports and professional emails with feedback and recommendations.
+            Perfect for recruiters and HR professionals.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+)
+
+// Add these sections before the footer
+
+const FAQSection = () => (
+  <section id="faq" className="scroll-mt-16 py-16 px-4 max-w-3xl mx-auto">
+    <h2 className="text-3xl font-semibold text-center mb-8">Frequently Asked Questions</h2>
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="q1">
+        <AccordionTrigger>How does the Resume Analyzer work?</AccordionTrigger>
+        <AccordionContent>
+          Our Resume Analyzer uses advanced AI to scan your resume, identify key skills and experiences, 
+          and generate detailed reports. It analyzes both technical skills and soft skills, providing 
+          comprehensive feedback and suggestions for improvement.
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="q2">
+        <AccordionTrigger>Can I convert any ChatGPT conversation to PDF?</AccordionTrigger>
+        <AccordionContent>
+          Yes! The Chat Converter can process any ChatGPT conversation. Simply paste your chat URL 
+          or content, and our tool will organize it into a well-structured PDF with key points, 
+          summaries, and categorized sections.
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="q3">
+        <AccordionTrigger>How accurate is the AI analysis?</AccordionTrigger>
+        <AccordionContent>
+          Our AI models are trained on extensive datasets and continuously improved. They provide 
+          highly accurate analysis with detailed explanations, helping you understand the reasoning 
+          behind each insight.
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  </section>
+)
+
+const TestimonialsSection = () => (
+  <section id="testimonials" className="scroll-mt-16 py-16 px-4 bg-secondary/5">
+    <div className="max-w-6xl mx-auto">
+      <h2 className="text-3xl font-semibold text-center mb-12">What Our Users Say</h2>
+      <div className="grid md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Streamlined Hiring Process</CardTitle>
+            <CardDescription>HR Manager</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              "The Resume Analyzer has revolutionized our recruitment process. We save hours on each application 
+              while getting more detailed insights into candidates' capabilities."
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Perfect Documentation</CardTitle>
+            <CardDescription>Technical Lead</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              "Converting ChatGPT conversations to PDFs has made it so much easier to document technical 
+              discussions and share knowledge within our team."
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Exceptional Insights</CardTitle>
+            <CardDescription>Career Coach</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              "The level of detail in the resume analysis helps my clients understand exactly what they 
+              need to improve. It's like having an expert assistant."
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </section>
+)
+
+const CTASection = () => (
+  <section className="py-20 px-4 bg-primary text-primary-foreground">
+    <div className="max-w-4xl mx-auto text-center">
+      <h2 className="text-3xl font-semibold mb-4">Ready to Get Started?</h2>
+      <p className="text-xl mb-8 opacity-90">
+        Transform your document workflow today with our AI-powered tools.
+      </p>
+      <div className="flex gap-4 justify-center">
+        <Button size="lg" variant="secondary" asChild>
+          <Link href="/resume-analyzer">Try Resume Analyzer</Link>
+        </Button>
+        <Button size="lg" variant="outline" className="bg-transparent" asChild>
+          <Link href="/chat-converter">Try Chat Converter</Link>
+        </Button>
+      </div>
+    </div>
+  </section>
+)
+
+const ContactSection = () => (
+  <section id="contact" className="scroll-mt-16 py-16 px-4 max-w-2xl mx-auto">
+    <h2 className="text-3xl font-semibold text-center mb-8">Get in Touch</h2>
+    <Card>
+      <CardContent className="pt-6">
+        <form className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <input
+                type="text"
+                className="w-full p-2 border rounded-md"
+                placeholder="Your name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email</label>
+              <input
+                type="email"
+                className="w-full p-2 border rounded-md"
+                placeholder="your@email.com"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Message</label>
+            <textarea
+              className="w-full p-2 border rounded-md h-32"
+              placeholder="How can we help?"
+            />
+          </div>
+          <Button className="w-full">Send Message</Button>
+        </form>
+      </CardContent>
+    </Card>
+  </section>
+)
+
+const ChatConverterDetails = () => (
+  <div className="space-y-6">
+    <h3 className="text-2xl font-semibold">Chat Converter Features</h3>
+    <Accordion type="single" collapsible className="w-full">
+      <AccordionItem value="conversion">
+        <AccordionTrigger>
+          <div className="flex items-center gap-2">
+            <FileOutput className="w-5 h-5" />
+            Smart Conversion
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <ul className="space-y-2 ml-7">
+            <li>Convert ChatGPT conversations into well-structured PDF documents</li>
+            <li>Maintain formatting and conversation flow</li>
+            <li>Support for code blocks and technical content</li>
+          </ul>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="insights">
+        <AccordionTrigger>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5" />
+            AI-Powered Insights
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <ul className="space-y-2 ml-7">
+            <li>Extract key takeaways and important points automatically</li>
+            <li>Generate summaries of technical discussions</li>
+            <li>Identify action items and follow-ups</li>
+          </ul>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="organization">
+        <AccordionTrigger>
+          <div className="flex items-center gap-2">
+            <List className="w-5 h-5" />
+            Content Organization
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <ul className="space-y-2 ml-7">
+            <li>Organize Q&A sections for easy reference</li>
+            <li>Create table of contents for longer conversations</li>
+            <li>Tag and categorize different types of content</li>
+          </ul>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  </div>
+)
+
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="bg-gradient-to-b mt-20 from-white to-gray-50">
       {/* Hero Section */}
       <section className="py-20 px-4 text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl mb-6">
@@ -32,82 +313,100 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 px-4 max-w-6xl mx-auto">
+      {/* Main Features */}
+      <section id="tools" className="scroll-mt-16 py-16 px-4 max-w-6xl mx-auto">
         <h2 className="text-3xl font-semibold text-center mb-12">Our Tools</h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          <Card className="group hover:shadow-lg transition-all">
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="w-5 h-5 text-primary" />
-                <CardTitle>Resume Analyzer</CardTitle>
-              </div>
-              <CardDescription>
-                Advanced resume analysis and report generation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 mb-6 text-sm">
-                <li className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                  Detailed skill assessment and analysis
-                </li>
-                <li className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                  Automated report generation
-                </li>
-                <li className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                  Professional email formatting
-                </li>
-              </ul>
-              <Button variant="secondary" className="w-full" asChild>
-                <Link href="/resume-analyzer">
-                  Analyze Resume
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+        <div className="grid md:grid-cols-2 gap-8 mb-16">
+          <FeatureCard 
+            icon={FileText}
+            title="Resume Analyzer"
+            description="Advanced resume analysis and report generation"
+            features={[
+              "AI-powered skill extraction and analysis",
+              "Comprehensive candidate assessment",
+              "Automated professional report generation",
+              "Customizable email templates"
+            ]}
+            linkHref="/resume-analyzer"
+            linkText="Analyze Resume"
+          />
+          <FeatureCard 
+            icon={MessageSquare}
+            title="Chat Converter"
+            description="Convert ChatGPT conversations into structured PDFs"
+            features={[
+              "Smart conversation parsing and formatting",
+              "Automatic key points extraction",
+              "Q&A organization and categorization",
+              "Professional PDF generation"
+            ]}
+            linkHref="/chat-converter"
+            linkText="Convert Chat"
+          />
+        </div>
 
-          <Card className="group hover:shadow-lg transition-all">
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="w-5 h-5 text-primary" />
-                <CardTitle>Chat Converter</CardTitle>
-              </div>
-              <CardDescription>
-                Convert chat conversations into structured PDFs
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 mb-6 text-sm">
-                <li className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                  Extract key points from conversations
-                </li>
-                <li className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                  Professional PDF formatting
-                </li>
-                <li className="flex items-center gap-2">
-                  <ArrowRight className="w-4 h-4 text-primary" />
-                  Easy sharing and storage
-                </li>
-              </ul>
-              <Button variant="secondary" className="w-full" asChild>
-                <Link href="/chat-converter">
-                  Convert Chat
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Detailed Sections */}
+        <div id="features" className="scroll-mt-16 space-y-16">
+          <ResumeAnalyzerDetails />
+          <ChatConverterDetails />
         </div>
       </section>
 
+      {/* Why Choose Us */}
+      <section id="why-us" className="scroll-mt-16 py-16 px-4 bg-primary/5">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-semibold text-center mb-8">Why Choose Our Tools</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="bg-white">
+              <CardHeader>
+                <Brain className="w-5 h-5 text-primary mb-2" />
+                <CardTitle className="text-lg">AI-Powered Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Advanced machine learning algorithms provide deep insights and accurate analysis
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-white">
+              <CardHeader>
+                <CheckCircle2 className="w-5 h-5 text-primary mb-2" />
+                <CardTitle className="text-lg">Time-Saving</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Automate manual tasks and get professional results in minutes instead of hours
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-white">
+              <CardHeader>
+                <BookOpen className="w-5 h-5 text-primary mb-2" />
+                <CardTitle className="text-lg">Easy to Use</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Intuitive interface and clear workflows make our tools accessible to everyone
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <TestimonialsSection />
+
+      <FAQSection />
+
+      <CTASection />
+
+      <ContactSection />
+
       {/* Footer */}
       <footer className="py-8 px-4 text-center text-sm text-muted-foreground">
-        <p>Built with Next.js and Shadcn UI • Powered by AI</p>
+        <p>© 2025 The AI Tools • Powered by AI</p>
       </footer>
+    </div>
     </div>
   )
 }

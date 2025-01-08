@@ -1,5 +1,6 @@
 "use client"
 import ChatExtractor from '@/components/ChatExtractor';
+import { Header } from '@/components/Header';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 
@@ -15,5 +16,8 @@ if (status === "loading") {
     redirect('/signin')
   }
   
-  return <ChatExtractor />;
+  return <>
+  <Header />
+  <ChatExtractor />
+  </>;
 }

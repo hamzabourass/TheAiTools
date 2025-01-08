@@ -5,7 +5,8 @@ import { useSession } from "next-auth/react"
 import { CVUploadForm } from "@/components/CVUploadForm"
 import { AnalysisResults } from "@/components/AnalysisResults"
 import { CVFormData, AnalysisResult, initialAnalysisState } from "@/types/types"
-import { SignInButton } from "@/components/auth/signin-button"
+import { redirect } from "next/navigation"
+import { Header } from "@/components/Header"
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -17,15 +18,8 @@ export default function Home() {
     return <div>Loading...</div>
   }
 
-  if (!session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">Welcome to CV Assistant</h1>
-          <SignInButton />
-        </div>
-      </div>
-    )
+if (!session) {
+    redirect('/signin')
   }
 
   
@@ -68,6 +62,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen  dark:from-gray-900 dark:to-gray-800">
+      <Header/>
       <div className="container mx-auto py-10 px-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight">CV Assistant</h1>

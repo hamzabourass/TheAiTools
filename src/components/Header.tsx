@@ -17,7 +17,7 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { LogOut, Settings, User, FileText, MessageSquare } from "lucide-react"
+import { LogOut, Settings, User, FileText, MessageSquare, Sparkles } from "lucide-react"
 import Link from "next/link"
 
 export function Header() {
@@ -28,8 +28,9 @@ export function Header() {
   return (
     <div className="flex items-center justify-between p-4 bg-white border-b">
       <div className="flex-1">
-        <Link href="/" className="text-xl font-semibold">
-          AI Tools
+        <Link href="/" className="flex items-center gap-2 mr-8">
+          <Sparkles className="h-6 w-6 text-primary" />
+          <span className="text-xl font-semibold">The AI Tools</span>
         </Link>
       </div>
       

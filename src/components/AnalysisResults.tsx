@@ -1,17 +1,19 @@
+"use client"
+
 import { AlertCircle, Loader2, Mail } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { SkillTag } from "./SkillTag"
 import { EmailDialog } from "./EmailDialog"
 import { AnalysisChart } from "./AnalysisChart"
+import { ExpandableSkills } from "./ExpandableSkills"
 import { AnalysisResult } from "@/types/types"
+
 
 type AnalysisResultsProps = {
   analysis: AnalysisResult;
   recipientEmail: string;
   onSendEmail: (emailData: { to: string; subject: string; message: string }) => void;
 }
-
 export function AnalysisResults({ 
   analysis, 
   recipientEmail,
@@ -28,7 +30,7 @@ export function AnalysisResults({
   if (analysis.status === 'analyzing') {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-8">
-        <Loader2 className="w-8 h-8 animate-spin mb-4 text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin mb-4 text-primary" />
         <p>Analyzing your application...</p>
       </div>
     )
@@ -46,82 +48,96 @@ export function AnalysisResults({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between border-b pb-4">
-        <h2 className="text-2xl font-bold">Analysis Results</h2>
+    <div className="space-y-8 pb-8">
+      {/* Header with Match Score */}
+      <div className="flex items-center justify-between pb-4 border-b">
+        <h2 className="text-2xl font-semibold">Analysis Results</h2>
         <div className="text-center">
-          <div className="text-3xl font-bold text-blue-600">{analysis.matchScore}%</div>
+          <div className="text-3xl font-bold text-primary">{analysis.matchScore}%</div>
           <div className="text-sm text-muted-foreground">Match Score</div>
         </div>
       </div>
 
       {/* Analysis Chart */}
-      <div className="">
+      <div className="py-4">
         <AnalysisChart analysis={analysis} />
       </div>
 
-      <div className="space-y-6">
-        {/* Skills Analysis */}
-        <div className="space-y-4">
-          {analysis.technicalSkills.length > 0 && (
-            <div>
-              <p className="text-sm font-medium mb-2">Technical Skills</p>
-              <div className="flex flex-wrap gap-2">
-                {analysis.technicalSkills.map((skill, index) => (
-                  <SkillTag key={index} skill={skill} variant="technical" />
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Skills Analysis */}
+      <div className="space-y-8">
+        {/* Technical Skills */}
+        {analysis.technicalSkills.length > 0 && (
+          <section>
+            <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+              Technical Skills
+              <span className="text-sm font-normal text-muted-foreground">
+                ({analysis.technicalSkills.length})
+              </span>
+            </h3>
+            <ExpandableSkills 
+              skills={analysis.technicalSkills} 
+              variant="technical" 
+            />
+          </section>
+        )}
 
-          {analysis.softSkills.length > 0 && (
-            <div>
-              <p className="text-sm font-medium mb-2">Soft Skills</p>
-              <div className="flex flex-wrap gap-2">
-                {analysis.softSkills.map((skill, index) => (
-                  <SkillTag key={index} skill={skill} variant="soft" />
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Soft Skills */}
+        {analysis.softSkills.length > 0 && (
+          <section>
+            <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
+              Soft Skills
+              <span className="text-sm font-normal text-muted-foreground">
+                ({analysis.softSkills.length})
+              </span>
+            </h3>
+            <ExpandableSkills 
+              skills={analysis.softSkills} 
+              variant="soft" 
+            />
+          </section>
+        )}
 
-          {analysis.missingSkills.length > 0 && (
-            <div>
-              <p className="text-sm font-medium mb-2">Missing Skills</p>
-              <div className="flex flex-wrap gap-2">
-                {analysis.missingSkills.map((skill, index) => (
-                  <SkillTag key={index} skill={skill} variant="missing" />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Missing Skills */}
+        {analysis.missingSkills.length > 0 && (
+          <section>
+            <h3 className="text-lg font-medium mb-4 flex items-center gap-2 text-destructive">
+              Missing Skills
+              <span className="text-sm font-normal text-muted-foreground">
+                ({analysis.missingSkills.length})
+              </span>
+            </h3>
+            <ExpandableSkills 
+              skills={analysis.missingSkills} 
+              variant="missing" 
+            />
+          </section>
+        )}
 
         {/* Improvements */}
         {analysis.improvements.length > 0 && (
-          <div>
-            <p className="text-sm font-medium mb-2">Suggested Improvements</p>
-            <ul className="space-y-2">
+          <section>
+            <h3 className="text-lg font-medium mb-4">Suggested Improvements</h3>
+            <ul className="space-y-3">
               {analysis.improvements.map((improvement, index) => (
-                <li key={index} className="flex items-start gap-2">
+                <li key={index} className="flex gap-3 items-start text-muted-foreground">
                   <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{improvement}</span>
+                  <span>{improvement}</span>
                 </li>
               ))}
             </ul>
-          </div>
+          </section>
         )}
 
         {/* Generated Email */}
         {analysis.generatedEmail.subject && analysis.generatedEmail.body && (
-          <div>
-            <p className="text-sm font-medium mb-2">Generated Email</p>
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-              <div className="mb-2">
-                <span className="text-sm font-medium">Subject: </span>
-                <span className="text-sm">{analysis.generatedEmail.subject}</span>
+          <section className="space-y-4">
+            <h3 className="text-lg font-medium">Generated Email</h3>
+            <div className="rounded-lg bg-muted/50 p-6 space-y-4">
+              <div>
+                <span className="font-medium">Subject: </span>
+                <span className="text-muted-foreground">{analysis.generatedEmail.subject}</span>
               </div>
-              <div className="text-sm whitespace-pre-wrap">
+              <div className="text-muted-foreground whitespace-pre-wrap">
                 {analysis.generatedEmail.body}
               </div>
               <EmailDialog
@@ -130,14 +146,14 @@ export function AnalysisResults({
                 emailBody={analysis.generatedEmail.body}
                 onSend={onSendEmail}
                 trigger={
-                  <Button className="w-full mt-4">
+                  <Button className="w-full mt-4" variant="secondary">
                     <Mail className="w-4 h-4 mr-2" />
                     Send Email
                   </Button>
                 }
               />
             </div>
-          </div>
+          </section>
         )}
       </div>
     </div>

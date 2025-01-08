@@ -1,10 +1,12 @@
+"use client"
+
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Mail, FileText, Send, Upload, Loader2 } from "lucide-react"
+import { Mail, FileText, Send, Upload, Loader2, AlertCircle } from "lucide-react"
 import { CVFormData, formSchema } from "@/types/types"
 
 type CVUploadFormProps = {
@@ -27,81 +29,96 @@ export function CVUploadForm({ onSubmit, isLoading }: CVUploadFormProps) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl mx-auto space-y-8">
+      {/* Email Field */}
       <div className="space-y-2">
-        <label className="text-sm font-medium flex items-center gap-2">
-          <Mail className="w-4 h-4" />
+        <label className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <Mail className="w-4 h-4 text-muted-foreground" />
           HR Email
         </label>
         <Input 
           {...form.register("email")}
           placeholder="recruiter@company.com"
-          className="border-2 focus:ring-2"
+          className={`transition-all duration-200 ${
+            form.formState.errors.email ? 'border-destructive ring-destructive' : 'hover:border-primary/50 focus:border-primary'
+          }`}
         />
         {form.formState.errors.email?.message && (
-          <p className="text-sm text-red-500">
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="w-4 h-4" />
             {form.formState.errors.email.message.toString()}
-          </p>
+          </div>
         )}
       </div>
       
+      {/* Job Description Field */}
       <div className="space-y-2">
-        <label className="text-sm font-medium flex items-center gap-2">
-          <FileText className="w-4 h-4" />
+        <label className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <FileText className="w-4 h-4 text-muted-foreground" />
           Job Description
         </label>
         <Textarea 
           {...form.register("jobDescription")}
           placeholder="Paste the job description here..."
-          className="min-h-[200px] border-2 focus:ring-2"
+          className={`min-h-[200px] resize-y transition-all duration-200 ${
+            form.formState.errors.jobDescription ? 'border-destructive ring-destructive' : 'hover:border-primary/50 focus:border-primary'
+          }`}
         />
         {form.formState.errors.jobDescription?.message && (
-          <p className="text-sm text-red-500">
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="w-4 h-4" />
             {form.formState.errors.jobDescription.message.toString()}
-          </p>
+          </div>
         )}
       </div>
       
+      {/* CV Upload Field */}
       <div className="space-y-2">
-        <label className="text-sm font-medium flex items-center gap-2">
-          <Upload className="w-4 h-4" />
-          Upload CV (PDF, max 5MB)
+        <label className="flex items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          <Upload className="w-4 h-4 text-muted-foreground" />
+          Upload CV (PDF)
         </label>
-        <Input 
-          type="file"
-          {...form.register("cv")}
-          accept=".pdf"
-          className="border-2 focus:ring-2"
-          onChange={handleFileChange}
-        />
+        <div className="relative">
+          <Input 
+            type="file"
+            {...form.register("cv")}
+            accept=".pdf"
+            className={`file:border-0 file:bg-transparent file:text-sm file:font-medium file:mr-4 hover:file:bg-primary/5 file:text-primary transition-all duration-200 ${
+              form.formState.errors.cv ? 'border-destructive ring-destructive' : 'hover:border-primary/50 focus:border-primary'
+            }`}
+            onChange={handleFileChange}
+          />
+        </div>
         {form.formState.errors.cv?.message && (
-          <p className="text-sm text-red-500">
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="w-4 h-4" />
             {form.formState.errors.cv.message.toString()}
-          </p>
+          </div>
         )}
         {fileName && (
-          <div className="flex items-center gap-2 text-sm text-blue-600">
+          <div className="flex items-center gap-2 text-sm text-primary">
             <FileText className="w-4 h-4" />
             {fileName}
           </div>
         )}
       </div>
       
+      {/* Submit Button */}
       <Button 
         type="submit"
         disabled={isLoading}
-        className="w-full text-white py-6"
+        className="w-full h-12 text-base font-medium transition-all duration-200"
       >
         {isLoading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Analyzing...
-          </>
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Analyzing CV...
+          </div>
         ) : (
-          <>
-            Analyze & Generate
-            <Send className="w-4 h-4 ml-2" />
-          </>
+          <div className="flex items-center justify-center gap-2">
+            <span>Analyze & Generate Report</span>
+            <Send className="w-5 h-5" />
+          </div>
         )}
       </Button>
     </form>
