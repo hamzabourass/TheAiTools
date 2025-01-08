@@ -1,4 +1,3 @@
-// lib/ai/analysis.ts
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
@@ -11,12 +10,13 @@ if (!process.env.OPENAI_API_KEY) {
 
 
 console.log(process.env.OPENAI_API_KEY);
-// Initialize GPT-3.5 Turbo
+
 const model = new ChatOpenAI({
-  modelName: "gpt-3.5-turbo",
+  modelName: "gpt-4-turbo",
   temperature: 0.7,
   openAIApiKey: process.env.OPENAI_API_KEY
 });
+
 const scoringGuidelines = `
 Your scoring should follow these guidelines:
 - Base score starts at 0
@@ -52,7 +52,7 @@ The generated email should:
 const chatPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are a professional CV analyzer known for providing detailed and thorough feedback. Pay special attention to:
+    `You are a strict professional HR known for providing detailed and thorough feedback. Pay special attention to:
     
     1. Skills mentioned in ALL sections of the CV:
        - Work experience descriptions
@@ -73,6 +73,8 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
        - Academic background
        - Certification programs
        - Project management experience
+    
+    4. Years of Experience if there is big cap it should take this in consideration
 
     ${scoringGuidelines}
     ${responseValidation}
@@ -103,7 +105,7 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
     3. matchScore: Integer 0-100
     4. missingSkills: Array of missing requirements
     5. improvements: Array of specific improvements also include improvements about the users resume highlighting what is currently missing and what is currently present
-    6. generatedEmail: Gnerate an email to send to the recuiter. Return an Object with subject and body the body should be formatted with spaces like professional emails.
+    6. generatedEmail: Generate an email to send to the recuiter. Return an Object with subject and body the body should be formatted with spaces like professional emails.
     7. status: "complete"
 
     Ensure NO relevant skills are missed from any section of the CV.`
@@ -122,9 +124,8 @@ const chain = chatPrompt
 export class CVAnalyzer {
   async analyzeCVAndJob(cvText: string, jobDescription: string) {
     try {
-      console.log('Starting analysis with GPT-3.5...');
+      console.log('Starting analysis with GPT-4-Turbo...');
 
-      // Validate input variables
       if (!cvText || typeof cvText !== "string") {
         throw new Error('Invalid CV text provided.');
       }
@@ -132,7 +133,6 @@ export class CVAnalyzer {
         throw new Error('Invalid job description provided.');
       }
 
-      // Invoke the chain with the correct input variables
       const response = await chain.invoke({
         cv: cvText,
         jobDescription: jobDescription,
@@ -152,7 +152,6 @@ export class CVAnalyzer {
         const analysis = JSON.parse(jsonMatch[0]);
         console.log('Parsed analysis:', analysis);
 
-        // Ensure all required fields exist
         const defaultAnalysis = {
           technicalSkills: [],
           softSkills: [],
@@ -163,7 +162,6 @@ export class CVAnalyzer {
           status: "complete"
         };
 
-        // Combine default values with actual analysis
         return { ...defaultAnalysis, ...analysis };
       } catch (parseError) {
         console.error('JSON parsing error:', parseError);
