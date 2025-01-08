@@ -1,13 +1,19 @@
-import { NextResponse } from 'next/server';
 import { generateChatPDF } from '@/lib/pdf/generateChatPDF';
+import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not set in environment variables");
+    }
+
     const data = await request.json();
-    console.log('Route received data:', data); // Debug log
     
+    if (!data.messages || !Array.isArray(data.messages)) {
+      throw new Error('Invalid data structure');
+    }
+
     const pdfBuffer = await generateChatPDF(data);
-    console.log('PDF buffer size:', pdfBuffer.length); // Debug log
 
     return new NextResponse(pdfBuffer, {
       status: 200,
@@ -17,6 +23,7 @@ export async function POST(request: Request) {
         'Content-Length': pdfBuffer.length.toString()
       }
     });
+
   } catch (error) {
     console.error('PDF Generation Error:', error);
     return NextResponse.json(

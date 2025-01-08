@@ -12,7 +12,7 @@ if (!process.env.OPENAI_API_KEY) {
 console.log(process.env.OPENAI_API_KEY);
 
 const model = new ChatOpenAI({
-  modelName: "gpt-3.5-turbo",
+  modelName: "gpt-4",
   temperature: 0.7,
   openAIApiKey: process.env.OPENAI_API_KEY
 });
