@@ -62,50 +62,53 @@ const Navbar = () => {
               </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <button 
-                onClick={() => scrollToSection('tools')}
-                className={navigationMenuTriggerStyle()}
-              >
-                Tools
-              </button>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <button 
-                onClick={() => scrollToSection('features')}
-                className={navigationMenuTriggerStyle()}
-              >
-                Features
-              </button>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <button 
-                onClick={() => scrollToSection('why-us')}
-                className={navigationMenuTriggerStyle()}
-              >
-                Why Choose Us
-              </button>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="#testimonials" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Testimonials
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="#faq" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  FAQ
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <Link href="#contact" legacyBehavior passHref>
-                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                  Contact
-                </NavigationMenuLink>
-              </Link>
-            </NavigationMenuItem>
+  <button 
+    onClick={() => scrollToSection('tools')}
+    className={navigationMenuTriggerStyle()}
+  >
+    Tools
+  </button>
+</NavigationMenuItem>
+<NavigationMenuItem>
+  <button 
+    onClick={() => scrollToSection('features')}
+    className={navigationMenuTriggerStyle()}
+  >
+    Features
+  </button>
+</NavigationMenuItem>
+<NavigationMenuItem>
+  <button 
+    onClick={() => scrollToSection('why-us')}
+    className={navigationMenuTriggerStyle()}
+  >
+    Why Choose Us
+  </button>
+</NavigationMenuItem>
+<NavigationMenuItem>
+  <button 
+    onClick={() => scrollToSection('testimonials')}
+    className={navigationMenuTriggerStyle()}
+  >
+    Testimonials
+  </button>
+</NavigationMenuItem>
+<NavigationMenuItem>
+  <button 
+    onClick={() => scrollToSection('faq')}
+    className={navigationMenuTriggerStyle()}
+  >
+    FAQ
+  </button>
+</NavigationMenuItem>
+<NavigationMenuItem>
+  <button 
+    onClick={() => scrollToSection('contact')}
+    className={navigationMenuTriggerStyle()}
+  >
+    Contact
+  </button>
+</NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
 

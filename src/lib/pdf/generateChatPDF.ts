@@ -18,7 +18,7 @@ interface ChatData {
   analysisType: string;
 }
 
-// Enhanced analysis prompts for different types (without ** ** markers)
+// Enhanced analysis prompts for different types
 const analysisPrompts = {
   summary: `Analyze the conversation and provide a detailed summary with actionable insights. Focus on extracting key themes, outcomes, and practical recommendations. Follow this format:
 
@@ -45,11 +45,11 @@ const analysisPrompts = {
     Provide a brief overview of the conversation's main topics and context. Explain why these Q&A pairs are relevant and useful.
 
     QUESTIONS & ANSWERS
-    Q: [Hypothetical question 1: A question someone might ask about this topic]
-    A: [Detailed answer 1: Provide a thorough explanation, including examples, steps, or practical advice. Expand on the topic as much as possible.]
+    Q1: [Hypothetical question 1: A question someone might ask about this topic]
+    A1: [Detailed answer 1: Provide a thorough explanation, including examples, steps, or practical advice. Expand on the topic as much as possible.]
 
-    Q: [Hypothetical question 2: A question someone might ask about this topic]
-    A: [Detailed answer 2: Provide a thorough explanation, including examples, steps, or practical advice. Expand on the topic as much as possible.]
+    Q2: [Hypothetical question 2: A question someone might ask about this topic]
+    A2: [Detailed answer 2: Provide a thorough explanation, including examples, steps, or practical advice. Expand on the topic as much as possible.]
 
     KEY TAKEAWAYS
     • [Takeaway 1: A key lesson or insight from the Q&A, with actionable advice]
@@ -136,7 +136,7 @@ async function generateTitle(content: string) {
 async function analyzeChat(messages: Message[], analysisType: string) {
   try {
     const model = new ChatOpenAI({
-      modelName: "gpt-4",
+      modelName: "gpt-4-turbo",
       temperature: 0.7,
       openAIApiKey: process.env.OPENAI_API_KEY
     });
@@ -179,8 +179,10 @@ async function analyzeChat(messages: Message[], analysisType: string) {
 
 export async function generateChatPDF(chatData: ChatData) {
   try {
-    const analysis = await analyzeChat(chatData.messages, chatData.analysisType);
-    const title = await generateTitle(analysis);
+    let analysis = await analyzeChat(chatData.messages, chatData.analysisType);
+    analysis = analysis.replace(/[#*]/g, ''); 
+    let title = await generateTitle(analysis);
+    title = title.replace(/^"|"$/g, '');
 
     const doc = new jsPDF({
       orientation: 'portrait',

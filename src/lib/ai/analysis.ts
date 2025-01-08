@@ -12,7 +12,7 @@ if (!process.env.OPENAI_API_KEY) {
 console.log(process.env.OPENAI_API_KEY);
 
 const model = new ChatOpenAI({
-  modelName: "gpt-4",
+  modelName: "gpt-4-turbo",
   temperature: 0.7,
   openAIApiKey: process.env.OPENAI_API_KEY
 });
@@ -105,7 +105,7 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
     3. matchScore: Integer 0-100
     4. missingSkills: Array of missing requirements
     5. improvements: Array of specific improvements also include improvements about the users resume highlighting what is currently missing and what is currently present
-    6. generatedEmail: Gnerate an email to send to the recuiter. Return an Object with subject and body the body should be formatted with spaces like professional emails.
+    6. generatedEmail: Generate an email to send to the recuiter. Return an Object with subject and body the body should be formatted with spaces like professional emails.
     7. status: "complete"
 
     Ensure NO relevant skills are missed from any section of the CV.`
@@ -124,7 +124,7 @@ const chain = chatPrompt
 export class CVAnalyzer {
   async analyzeCVAndJob(cvText: string, jobDescription: string) {
     try {
-      console.log('Starting analysis with GPT-3.5...');
+      console.log('Starting analysis with GPT-4-Turbo...');
 
       if (!cvText || typeof cvText !== "string") {
         throw new Error('Invalid CV text provided.');
