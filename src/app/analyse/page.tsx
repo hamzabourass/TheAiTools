@@ -29,6 +29,7 @@ export default function Home() {
     )
   }
 
+  
   async function onSubmit(data: CVFormData) {
     try {
       setIsLoading(true)
@@ -68,9 +69,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <Header />
-      
+    
       <div className="container py-10 px-4">
+      
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight">CV Assistant</h1>
           <p className="text-lg text-muted-foreground">
@@ -80,17 +81,20 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           {/* Form Section */}
-          <div className="dark:bg-gray-800 p-8 shadow-lg rounded-lg">
+          <div className="dark:bg-gray-800 p-6 shadow-lg h-fit">
             <CVUploadForm onSubmit={onSubmit} isLoading={isLoading} />
           </div>
 
           {/* Results Section */}
-          <div className="dark:bg-gray-800 p-8 shadow-lg rounded-lg">
-            <AnalysisResults
-              analysis={analysis}
-              recipientEmail={recipientEmail}
-              onSendEmail={handleSendEmail}
-            />
+          <div className="relative">
+            <div className="absolute left-0 top-0 h-full w-px bg-gray-200 dark:bg-gray-700" />
+            <div className="pl-8">
+              <AnalysisResults
+                analysis={analysis}
+                recipientEmail={recipientEmail}
+                onSendEmail={handleSendEmail}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -40,11 +40,8 @@ Your analysis should include:
 - At least 3 specific suggestions for improvement
 - A clear explanation of the match score
 - A balanced view of strengths and areas for development
-- If there is a significant gap in experience or a major difference in profile:
-  - Highlight the gap or difference explicitly
-  - Provide specific recommendations to bridge the gap (e.g., additional certifications, relevant projects, etc.)
-  - Consider the transferable skills that could mitigate the gap
 `;
+
 const emailGuidelines = `
 The generated email should:
 - Acknowledge any significant gaps in a constructive manner
