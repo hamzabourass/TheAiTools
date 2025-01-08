@@ -1,4 +1,3 @@
-// lib/ai/analysis.ts
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
@@ -28,6 +27,8 @@ Your scoring should follow these guidelines:
 - Industry experience match: +10 points
 - Missing critical skills: -5 points each
 - Insufficient experience: -10 points
+- Significant gap in experience (more than 3 years): -20 points
+- Major difference in profile (e.g., switching industries without relevant transferable skills): -15 points
 - The final score can exceed 85 if qualifications are strong
 - A score above 60 generally requires meeting most critical requirements
 - Be fair and balanced in your assessment
@@ -39,8 +40,11 @@ Your analysis should include:
 - At least 3 specific suggestions for improvement
 - A clear explanation of the match score
 - A balanced view of strengths and areas for development
+- If there is a significant gap in experience or a major difference in profile:
+  - Highlight the gap or difference explicitly
+  - Provide specific recommendations to bridge the gap (e.g., additional certifications, relevant projects, etc.)
+  - Consider the transferable skills that could mitigate the gap
 `;
-
 const emailGuidelines = `
 The generated email should:
 - Acknowledge any significant gaps in a constructive manner
@@ -74,6 +78,8 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
        - Academic background
        - Certification programs
        - Project management experience
+    
+    4. Years of Experience if there is big cap it should take this in consideration
 
     ${scoringGuidelines}
     ${responseValidation}
