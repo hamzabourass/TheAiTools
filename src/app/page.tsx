@@ -29,81 +29,147 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Navbar from "@/components/landing/navbar/Navbar"
+import { motion } from "framer-motion"
+
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+}
+
+const staggerChildren = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+}
+
+const cardHover = {
+  hover: {
+    scale: 1.03,
+    transition: {
+      duration: 0.2
+    }
+  }
+}
 
 const FeatureCard = ({ icon: Icon, title, description, features, linkHref, linkText }) => (
-  <Card className="group hover:shadow-lg transition-all">
-    <CardHeader>
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-5 h-5 text-primary" />
-        <CardTitle>{title}</CardTitle>
-      </div>
-      <CardDescription>{description}</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <ul className="space-y-2 mb-6 text-sm">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-center gap-2">
-            <ArrowRight className="w-4 h-4 text-primary" />
-            {feature}
-          </li>
-        ))}
-      </ul>
-      <Button variant="secondary" className="w-full" asChild>
-        <Link href={linkHref}>{linkText}</Link>
-      </Button>
-    </CardContent>
-  </Card>
+  <motion.div
+    variants={fadeInUp}
+    whileHover="hover"
+    // eslint-disable-next-line react/jsx-no-duplicate-props
+    variants={cardHover}
+  >
+    <Card className="h-full">
+      <CardHeader>
+        <motion.div 
+          className="flex items-center gap-2 mb-2"
+          whileHover={{ scale: 1.05 }}
+        >
+          <Icon className="w-5 h-5 text-primary" />
+          <CardTitle>{title}</CardTitle>
+        </motion.div>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <motion.ul 
+          className="space-y-2 mb-6 text-sm"
+          variants={staggerChildren}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {features.map((feature, index) => (
+            <motion.li 
+              key={index} 
+              className="flex items-center gap-2"
+              variants={fadeInUp}
+            >
+              <ArrowRight className="w-4 h-4 text-primary" />
+              {feature}
+            </motion.li>
+          ))}
+        </motion.ul>
+        <Button variant="secondary" className="w-full" asChild>
+          <Link href={linkHref}>{linkText}</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  </motion.div>
 )
 
 const ResumeAnalyzerDetails = () => (
-  <div className="space-y-6">
-    <h3 className="text-2xl font-semibold">Resume Analyzer Features</h3>
+  <motion.div 
+    className="space-y-6"
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={staggerChildren}
+  >
+    <motion.h3 
+      className="text-2xl font-semibold"
+      variants={fadeInUp}
+    >
+      Resume Analyzer Features
+    </motion.h3>
     <div className="grid md:grid-cols-3 gap-6">
-      <Card>
-        <CardHeader>
-          <FileSearch className="w-5 h-5 text-primary mb-2" />
-          <CardTitle className="text-lg">Smart Analysis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Advanced AI algorithms analyze resumes to identify key skills, experiences, and qualifications.
-            Provides detailed insights about candidate strengths and areas for improvement.
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <Brain className="w-5 h-5 text-primary mb-2" />
-          <CardTitle className="text-lg">Skills Assessment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Automatically extracts and categorizes technical skills, soft skills, and industry expertise.
-            Matches skills against job requirements and industry standards.
-          </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <MailCheck className="w-5 h-5 text-primary mb-2" />
-          <CardTitle className="text-lg">Professional Reports</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Generates comprehensive reports and professional emails with feedback and recommendations.
-            Perfect for recruiters and HR professionals.
-          </p>
-        </CardContent>
-      </Card>
+      {[
+        {
+          icon: FileSearch,
+          title: "Smart Analysis",
+          description: "Advanced AI algorithms analyze resumes to identify key skills, experiences, and qualifications. Provides detailed insights about candidate strengths and areas for improvement."
+        },
+        {
+          icon: Brain,
+          title: "Skills Assessment",
+          description: "Automatically extracts and categorizes technical skills, soft skills, and industry expertise. Matches skills against job requirements and industry standards."
+        },
+        {
+          icon: MailCheck,
+          title: "Professional Reports",
+          description: "Generates comprehensive reports and professional emails with feedback and recommendations. Perfect for recruiters and HR professionals."
+        }
+      ].map((item, index) => (
+        <motion.div
+          key={index}
+          variants={fadeInUp}
+          whileHover={{ scale: 1.05 }}
+        >
+          <Card>
+            <CardHeader>
+              <item.icon className="w-5 h-5 text-primary mb-2" />
+              <CardTitle className="text-lg">{item.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                {item.description}
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
     </div>
-  </div>
+  </motion.div>
 )
 
-// Add these sections before the footer
-
 const FAQSection = () => (
-  <section id="faq" className="scroll-mt-16 py-16 px-4 max-w-3xl mx-auto">
-    <h2 className="text-3xl font-semibold text-center mb-8">Frequently Asked Questions</h2>
+  <motion.section 
+    id="faq" 
+    className="scroll-mt-16 py-16 px-4 max-w-3xl mx-auto"
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={staggerChildren}
+  >
+    <motion.h2 
+      className="text-3xl font-semibold text-center mb-8"
+      variants={fadeInUp}
+    >
+      Frequently Asked Questions
+    </motion.h2>
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="q1">
         <AccordionTrigger>How does the Resume Analyzer work?</AccordionTrigger>
@@ -130,115 +196,168 @@ const FAQSection = () => (
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-  </section>
+  </motion.section>
 )
 
 const TestimonialsSection = () => (
-  <section id="testimonials" className="scroll-mt-16 py-16 px-4 bg-secondary/5">
+  <motion.section 
+    id="testimonials" 
+    className="scroll-mt-16 py-16 px-4 bg-secondary/5"
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={staggerChildren}
+  >
     <div className="max-w-6xl mx-auto">
-      <h2 className="text-3xl font-semibold text-center mb-12">What Our Users Say</h2>
+      <motion.h2 
+        className="text-3xl font-semibold text-center mb-12"
+        variants={fadeInUp}
+      >
+        What Our Users Say
+      </motion.h2>
       <div className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Streamlined Hiring Process</CardTitle>
-            <CardDescription>HR Manager</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              &quot;The Resume Analyzer has revolutionized our recruitment process. We save hours on each application 
-              while getting more detailed insights into candidates capabilities.&quot;
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Perfect Documentation</CardTitle>
-            <CardDescription>Technical Lead</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              &quot;Converting ChatGPT conversations to PDFs has made it so much easier to document technical 
-              discussions and share knowledge within our team.&quot;
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Exceptional Insights</CardTitle>
-            <CardDescription>Career Coach</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              &quot;The level of detail in the resume analysis helps my clients understand exactly what they 
-              need to improve. It&apos;s like having an expert assistant.&quot;
-            </p>
-          </CardContent>
-        </Card>
+        {[
+          {
+            title: "Streamlined Hiring Process",
+            role: "HR Manager",
+            content: "The Resume Analyzer has revolutionized our recruitment process. We save hours on each application while getting more detailed insights into candidates capabilities."
+          },
+          {
+            title: "Perfect Documentation",
+            role: "Technical Lead",
+            content: "Converting ChatGPT conversations to PDFs has made it so much easier to document technical discussions and share knowledge within our team."
+          },
+          {
+            title: "Exceptional Insights",
+            role: "Career Coach",
+            content: "The level of detail in the resume analysis helps my clients understand exactly what they need to improve. It's like having an expert assistant."
+          }
+        ].map((testimonial, index) => (
+          <motion.div
+            key={index}
+            variants={fadeInUp}
+            whileHover={{ scale: 1.05 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{testimonial.title}</CardTitle>
+                <CardDescription>{testimonial.role}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  &quot;{testimonial.content}&quot;
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
       </div>
     </div>
-  </section>
+  </motion.section>
 )
 
 const CTASection = () => (
-  <section className="py-20 px-4 bg-primary text-primary-foreground">
+  <motion.section 
+    className="py-20 px-4 bg-primary text-primary-foreground"
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={staggerChildren}
+  >
     <div className="max-w-4xl mx-auto text-center">
-      <h2 className="text-3xl font-semibold mb-4">Ready to Get Started?</h2>
-      <p className="text-xl mb-8 opacity-90">
+      <motion.h2 
+        className="text-3xl font-semibold mb-4"
+        variants={fadeInUp}
+      >
+        Ready to Get Started?
+      </motion.h2>
+      <motion.p 
+        className="text-xl mb-8 opacity-90 "
+        variants={fadeInUp}
+      >
         Transform your document workflow today with our AI-powered tools.
-      </p>
-      <div className="flex gap-4 justify-center">
+      </motion.p>
+      <motion.div 
+        className="flex gap-4 justify-center"
+        variants={fadeInUp}
+      >
         <Button size="lg" variant="secondary" asChild>
           <Link href="/resume-analyzer">Try Resume Analyzer</Link>
         </Button>
         <Button size="lg" variant="outline" className="bg-transparent" asChild>
           <Link href="/chat-converter">Try Chat Converter</Link>
         </Button>
-      </div>
+      </motion.div>
     </div>
-  </section>
+  </motion.section>
 )
 
 const ContactSection = () => (
-  <section id="contact" className="scroll-mt-16 py-16 px-4 max-w-2xl mx-auto">
-    <h2 className="text-3xl font-semibold text-center mb-8">Get in Touch</h2>
-    <Card>
-      <CardContent className="pt-6">
-        <form className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Name</label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded-md"
-                placeholder="Your name"
-              />
+  <motion.section 
+    id="contact" 
+    className="scroll-mt-16 py-16 px-4 max-w-2xl mx-auto"
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={staggerChildren}
+  >
+    <motion.h2 
+      className="text-3xl font-semibold text-center mb-8"
+      variants={fadeInUp}
+    >
+      Get in Touch
+    </motion.h2>
+    <motion.div variants={fadeInUp}>
+      <Card>
+        <CardContent className="pt-6">
+          <form className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name</label>
+                <input
+                  type="text"
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Your name"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Email</label>
+                <input
+                  type="email"
+                  className="w-full p-2 border rounded-md"
+                  placeholder="your@email.com"
+                />
+              </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <input
-                type="email"
-                className="w-full p-2 border rounded-md"
-                placeholder="your@email.com"
+              <label className="text-sm font-medium">Message</label>
+              <textarea
+                className="w-full p-2 border rounded-md h-32"
+                placeholder="How can we help?"
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Message</label>
-            <textarea
-              className="w-full p-2 border rounded-md h-32"
-              placeholder="How can we help?"
-            />
-          </div>
-          <Button className="w-full">Send Message</Button>
-        </form>
-      </CardContent>
-    </Card>
-  </section>
+            <Button className="w-full">Send Message</Button>
+          </form>
+        </CardContent>
+      </Card>
+    </motion.div>
+  </motion.section>
 )
 
 const ChatConverterDetails = () => (
-  <div className="space-y-6">
-    <h3 className="text-2xl font-semibold">Chat Converter Features</h3>
+  <motion.div 
+    className="space-y-6"
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true }}
+    variants={staggerChildren}
+  >
+    <motion.h3 
+      className="text-2xl font-semibold"
+      variants={fadeInUp}
+    >
+      Chat Converter Features
+    </motion.h3>
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="conversion">
         <AccordionTrigger>
@@ -286,127 +405,178 @@ const ChatConverterDetails = () => (
         </AccordionContent>
       </AccordionItem>
     </Accordion>
-  </div>
+  </motion.div>
 )
-
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen">
       <Navbar />
       <div className="bg-gradient-to-b mt-20 from-white to-gray-50">
-      {/* Hero Section */}
-      <section className="py-20 px-4 text-center">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-6xl mb-6">
-          AI-Powered Document Tools
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-          Transform your resume analysis and chat conversations into actionable insights with our advanced AI tools.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <Button asChild size="lg">
-            <Link href="/resume-analyzer">Get Started</Link>
-          </Button>
-          <Button variant="outline" size="lg" asChild>
-            <Link href="/chat-converter">Try Chat Converter</Link>
-          </Button>
-        </div>
-      </section>
+        {/* Hero Section */}
+        <motion.section 
+          className="py-20 px-4 text-center"
+          initial="hidden"
+          animate="visible"
+          variants={staggerChildren}
+        >
+          <motion.h1 
+            className="text-4xl font-bold tracking-tight sm:text-6xl mb-6"
+            variants={fadeInUp}
+          >
+            AI-Powered Document Tools
+          </motion.h1>
+          <motion.p 
+            className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
+            variants={fadeInUp}
+          >
+            Transform your resume analysis and chat conversations into actionable insights with our advanced AI tools.
+          </motion.p>
+          <motion.div 
+            className="flex gap-4 justify-center"
+            variants={fadeInUp}
+          >
+            <Button asChild size="lg">
+              <Link href="/resume-analyzer">Get Started</Link>
+            </Button>
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/chat-converter">Try Chat Converter</Link>
+            </Button>
+          </motion.div>
+        </motion.section>
 
-      {/* Main Features */}
-      <section id="tools" className="scroll-mt-16 py-16 px-4 max-w-6xl mx-auto">
-        <h2 className="text-3xl font-semibold text-center mb-12">Our Tools</h2>
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          <FeatureCard 
-            icon={FileText}
-            title="Resume Analyzer"
-            description="Advanced resume analysis and report generation"
-            features={[
-              "AI-powered skill extraction and analysis",
-              "Comprehensive candidate assessment",
-              "Automated professional report generation",
-              "Customizable email templates"
-            ]}
-            linkHref="/resume-analyzer"
-            linkText="Analyze Resume"
-          />
-          <FeatureCard 
-            icon={MessageSquare}
-            title="Chat Converter"
-            description="Convert ChatGPT conversations into structured PDFs"
-            features={[
-              "Smart conversation parsing and formatting",
-              "Automatic key points extraction",
-              "Q&A organization and categorization",
-              "Professional PDF generation"
-            ]}
-            linkHref="/chat-converter"
-            linkText="Convert Chat"
-          />
-        </div>
+        {/* Main Features */}
+        <motion.section 
+          id="tools" 
+          className="scroll-mt-16 py-16 px-4 max-w-6xl mx-auto"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerChildren}
+        >
+          <motion.h2 
+            className="text-3xl font-semibold text-center mb-12"
+            variants={fadeInUp}
+          >
+            Our Tools
+          </motion.h2>
+          <motion.div 
+            className="grid md:grid-cols-2 gap-8 mb-16"
+            variants={staggerChildren}
+          >
+            <FeatureCard 
+              icon={FileText}
+              title="Resume Analyzer"
+              description="Advanced resume analysis and report generation"
+              features={[
+                "AI-powered skill extraction and analysis",
+                "Comprehensive candidate assessment",
+                "Automated professional report generation",
+                "Customizable email templates"
+              ]}
+              linkHref="/resume-analyzer"
+              linkText="Analyze Resume"
+            />
+            <FeatureCard 
+              icon={MessageSquare}
+              title="Chat Converter"
+              description="Convert ChatGPT conversations into structured PDFs"
+              features={[
+                "Smart conversation parsing and formatting",
+                "Automatic key points extraction",
+                "Q&A organization and categorization",
+                "Professional PDF generation"
+              ]}
+              linkHref="/chat-converter"
+              linkText="Convert Chat"
+            />
+          </motion.div>
 
-        {/* Detailed Sections */}
-        <div id="features" className="scroll-mt-16 space-y-16">
-          <ResumeAnalyzerDetails />
-          <ChatConverterDetails />
-        </div>
-      </section>
+          {/* Detailed Sections */}
+          <motion.div 
+            id="features" 
+            className="scroll-mt-16 space-y-16"
+            variants={staggerChildren}
+          >
+            <ResumeAnalyzerDetails />
+            <ChatConverterDetails />
+          </motion.div>
+        </motion.section>
 
-      {/* Why Choose Us */}
-      <section id="why-us" className="scroll-mt-16 py-16 px-4 bg-primary/5">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-8">Why Choose Our Tools</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="bg-white">
-              <CardHeader>
-                <Brain className="w-5 h-5 text-primary mb-2" />
-                <CardTitle className="text-lg">AI-Powered Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Advanced machine learning algorithms provide deep insights and accurate analysis
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-white">
-              <CardHeader>
-                <CheckCircle2 className="w-5 h-5 text-primary mb-2" />
-                <CardTitle className="text-lg">Time-Saving</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Automate manual tasks and get professional results in minutes instead of hours
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-white">
-              <CardHeader>
-                <BookOpen className="w-5 h-5 text-primary mb-2" />
-                <CardTitle className="text-lg">Easy to Use</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Intuitive interface and clear workflows make our tools accessible to everyone
-                </p>
-              </CardContent>
-            </Card>
+        {/* Why Choose Us */}
+        <motion.section 
+          id="why-us" 
+          className="scroll-mt-16 py-16 px-4 bg-primary/5"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={staggerChildren}
+        >
+          <div className="max-w-6xl mx-auto">
+            <motion.h2 
+              className="text-3xl font-semibold text-center mb-8"
+              variants={fadeInUp}
+            >
+              Why Choose Our Tools
+            </motion.h2>
+            <motion.div 
+              className="grid md:grid-cols-3 gap-6"
+              variants={staggerChildren}
+            >
+              {[
+                {
+                  icon: Brain,
+                  title: "AI-Powered Analysis",
+                  description: "Advanced machine learning algorithms provide deep insights and accurate analysis"
+                },
+                {
+                  icon: CheckCircle2,
+                  title: "Time-Saving",
+                  description: "Automate manual tasks and get professional results in minutes instead of hours"
+                },
+                {
+                  icon: BookOpen,
+                  title: "Easy to Use",
+                  description: "Intuitive interface and clear workflows make our tools accessible to everyone"
+                }
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  variants={fadeInUp}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <Card className="bg-white">
+                    <CardHeader>
+                      <item.icon className="w-5 h-5 text-primary mb-2" />
+                      <CardTitle className="text-lg">{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        {item.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
-        </div>
-      </section>
+        </motion.section>
 
-      <TestimonialsSection />
+        <TestimonialsSection />
+        <FAQSection />
+        <CTASection />
+        <ContactSection />
 
-      <FAQSection />
-
-      <CTASection />
-
-      <ContactSection />
-
-      {/* Footer */}
-      <footer className="py-8 px-4 text-center text-sm text-muted-foreground">
-        <p>© 2025 The AI Tools • Powered by AI</p>
-      </footer>
-    </div>
+        {/* Footer */}
+        <motion.footer 
+          className="py-8 px-4 text-center text-sm text-muted-foreground"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <p>© 2025 The AI Tools • Powered by AI</p>
+        </motion.footer>
+      </div>
     </div>
   )
 }
