@@ -28,6 +28,7 @@ import {
   Sparkles
 } from "lucide-react"
 import Link from "next/link"
+import Navbar from "@/components/landing/navbar/Navbar"
 import { motion } from "framer-motion"
 
 // Animation variants
