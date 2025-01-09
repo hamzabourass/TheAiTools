@@ -53,6 +53,37 @@ export const DATA_CATEGORIES = {
   
   type Category = keyof typeof DATA_CATEGORIES;
   
+  /**
+   * Generates a template reference prompt for users to understand how data generation works.
+   */
+  export function getTemplateReferencePrompt(): string {
+    return `Welcome to the Data Generator! Here's how you can use this tool:
+  
+  1. **Select a Category**: Choose a data category from the available options (e.g., User Profiles, E-commerce, Financial Transactions, etc.).
+  2. **Customize Fields**: Each category has predefined fields that you can use to generate data. You can also add or modify fields as needed.
+  3. **Generate Data**: Once you've selected a category and customized the fields, click "Generate Data" to create realistic and structured data.
+  4. **Export Data**: Export the generated data in your preferred format (e.g., JSON, CSV).
+  
+  Here’s an example of how to use the tool:
+  
+  - **Category**: User Profiles
+  - **Fields**: full_name, email, age, gender, location, occupation
+  - **Generated Data**:
+    {
+      "full_name": "John Doe",
+      "email": "john.doe@example.com",
+      "age": 30,
+      "gender": "Male",
+      "location": "New York, USA",
+      "occupation": "Software Engineer"
+    }
+  
+  Feel free to explore other categories and customize the fields to suit your needs!`;
+  }
+  
+  /**
+   * Generates a prompt for a specific data category.
+   */
   export function getCategoryPrompt(category: Category): string {
     const cat = DATA_CATEGORIES[category];
     return `Generate ${category.toLowerCase()} with the following fields: ${cat.fields.join(', ')}. 

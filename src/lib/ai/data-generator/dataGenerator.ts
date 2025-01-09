@@ -1,4 +1,4 @@
-// lib/services/dataGenerator.ts
+
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
@@ -23,12 +23,13 @@ export interface GeneratedData {
 export class DataGeneratorService {
   private model: ChatOpenAI;
   private readonly CHUNK_SIZE = 50;
+  private cachedData: any[] | null = null; // Cache for generated data
 
   constructor(apiKey: string) {
     this.model = new ChatOpenAI({
       modelName: "gpt-3.5-turbo",
       temperature: 0.7,
-      openAIApiKey: apiKey
+      openAIApiKey: apiKey,
     });
   }
 
@@ -79,7 +80,7 @@ Must be parseable ${params.format.toUpperCase()} format.`;
 
     return ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(systemTemplate),
-      HumanMessagePromptTemplate.fromTemplate(humanTemplate)
+      HumanMessagePromptTemplate.fromTemplate(humanTemplate),
     ]);
   }
 
@@ -108,18 +109,18 @@ Must be parseable ${params.format.toUpperCase()} format.`;
       const lines = cleaned.split('\n')
         .map(line => line.trim())
         .filter(line => line.length > 0);
-      
+
       if (lines.length < 2) {
         throw new Error('CSV must have headers and at least one data row');
       }
-      
+
       const headerCount = lines[0].split(',').length;
       const isValid = lines.every(line => line.split(',').length === headerCount);
-      
+
       if (!isValid) {
         throw new Error('Inconsistent number of columns in CSV');
       }
-      
+
       return lines.join('\n');
     } catch (error) {
       console.error('CSV cleaning error:', { original: text, error });
@@ -154,51 +155,55 @@ Must be parseable ${params.format.toUpperCase()} format.`;
   private async generateAllData(params: GenerateDataParams): Promise<any[]> {
     const allData: any[] = [];
     const numChunks = Math.ceil(params.rows / this.CHUNK_SIZE);
-    
+
     for (let i = 0; i < numChunks; i++) {
       const startIndex = i * this.CHUNK_SIZE;
       const remainingRows = params.rows - startIndex;
       const currentChunkSize = Math.min(this.CHUNK_SIZE, remainingRows);
-      
+
       console.log(`Generating chunk ${i + 1}/${numChunks} (${currentChunkSize} rows)`);
       const chunkData = await this.generateChunk(params, startIndex, currentChunkSize);
       allData.push(...chunkData);
     }
-    
+
     return allData;
   }
 
   public async generateData(params: GenerateDataParams): Promise<GeneratedData> {
     try {
-      const data = await this.generateAllData(params);
-      
+      // Generate data only if it hasn't been cached
+      if (!this.cachedData) {
+        this.cachedData = await this.generateAllData(params);
+      }
+
+      // Return data in the requested format
       switch (params.format) {
         case 'json': {
           return {
-            data: JSON.stringify(data, null, 2),
+            data: JSON.stringify(this.cachedData, null, 2),
             contentType: 'application/json',
-            filename: 'generated-data.json'
+            filename: 'generated-data.json',
           };
         }
 
         case 'csv': {
-          const csv = Papa.unparse(data);
+          const csv = Papa.unparse(this.cachedData);
           return {
             data: csv,
             contentType: 'text/csv',
-            filename: 'generated-data.csv'
+            filename: 'generated-data.csv',
           };
         }
 
         case 'xlsx': {
-          const worksheet = XLSX.utils.json_to_sheet(data);
+          const worksheet = XLSX.utils.json_to_sheet(this.cachedData);
           const workbook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-          
+
           return {
             data: XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
             contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            filename: 'generated-data.xlsx'
+            filename: 'generated-data.xlsx',
           };
         }
 
@@ -209,5 +214,10 @@ Must be parseable ${params.format.toUpperCase()} format.`;
       console.error('Generation error:', error);
       throw new Error(`Data generation failed: ${error.message}`);
     }
+  }
+
+  // Clear the cache (optional)
+  public clearCache(): void {
+    this.cachedData = null;
   }
 }
