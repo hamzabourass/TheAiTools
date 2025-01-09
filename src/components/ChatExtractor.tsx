@@ -261,14 +261,14 @@ export default function ChatExtractor() {
   return (
 
     <>         
-    <div className="text-center py-8 border-b">
-    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-    ChatGPT Extractor
-    </h1>
-    <p className="text-gray-600 max-w-2xl mx-auto px-4">
-    Convert your ChatGPT chat conversations into organized documents using AI
-    </p>
-    </div>
+      <div className="text-center py-8 border-b">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        ChatGPT Extractor
+        </h1>
+        <p className="text-gray-600 max-w-2xl mx-auto px-4">
+        Convert your ChatGPT chat conversations into organized documents using AI
+        </p>
+      </div>
     <div className="max-w-4xl mx-auto p-6">
 
       <div className="space-y-8">
