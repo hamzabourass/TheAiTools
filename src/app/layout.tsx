@@ -3,7 +3,7 @@ import "./globals.css"
 import { getServerSession } from "next-auth/next"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { authOptions } from "@/lib/auth/auth" 
-import { NotificationProvider } from "@/components/notificationProvider"
+import { NotificationProvider } from "@/components/providers/notificationProvider"
 
 const inter = Inter({ subsets: ["latin"] })
 

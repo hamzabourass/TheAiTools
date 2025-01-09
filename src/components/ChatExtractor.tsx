@@ -19,7 +19,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { useNotifications } from './notificationProvider';
+import { useNotifications } from './providers/notificationProvider';
 
 const ANALYSIS_TYPES = [
   {

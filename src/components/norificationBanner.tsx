@@ -1,7 +1,7 @@
 "use client"
 import { Loader2, X } from 'lucide-react';
 import { useEffect } from 'react';
-import { useNotifications } from './notificationProvider';
+import { useNotifications } from './providers/notificationProvider';
 
 export function NotificationBanners() {
   const { showGenerating, showSuccess, setSuccess } = useNotifications();

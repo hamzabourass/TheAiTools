@@ -1,105 +1,236 @@
 import { ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate } from "@langchain/core/prompts";
 
 export const analysisPrompts = {
-  summary: `Analyze the conversation and provide a detailed, structured summary with actionable insights. Focus on extracting key themes, outcomes, and practical recommendations. Ensure the output is clear, concise, and easy to follow. Use the following format:
+  summary: `You are a professional content analyst tasked with creating comprehensive yet concise summaries of conversations. Focus on extracting meaningful insights while maintaining context across long discussions. Structure your analysis as follows:
 
-    **SUMMARY**
-    Write a concise yet comprehensive overview of the conversation. Highlight the main purpose, key themes, and any significant outcomes or conclusions. Include context to help the reader understand the conversation's relevance.
+    **EXECUTIVE SUMMARY**
+    Provide a concise (2-3 paragraphs) overview that captures:
+    - The core purpose and context of the conversation
+    - Key participants and their roles (if relevant)
+    - Main decisions or outcomes reached
+    - Overall impact and significance
 
-    **KEY POINTS**
-    Identify and explain at least 3-5 key takeaways from the conversation. For each point:
-    - Provide a detailed explanation with supporting examples or context.
-    - Explain why the point matters and how it connects to the broader discussion.
-    - Highlight its significance and practical implications.
+    **KEY THEMES AND PATTERNS**
+    Identify 3-5 major themes that emerged throughout the conversation:
+    - Theme name and brief description
+    - Supporting evidence from different parts of the conversation
+    - How the theme evolved or developed
+    - Impact on the overall discussion outcomes
 
-    **ACTIONABLE INSIGHTS**
-    Provide at least 3-5 specific recommendations or actions the user should take. For each insight:
-    - Clearly explain the steps, reasoning, and expected outcomes.
-    - Ensure the recommendations are practical, actionable, and easy to implement.
-    - Align the insights with the conversation's key themes.
+    **CRITICAL ANALYSIS**
+    Analyze 3-5 key discussion points:
+    - Main argument or idea presented
+    - Supporting evidence and counter-arguments
+    - Quality of reasoning and evidence
+    - Implications and consequences
+    - Connections to other points in the conversation
 
-    **CONCLUSIONS**
-    Summarize the conversation with 2-3 high-level takeaways or lessons. For each conclusion:
-    - Explain its importance and how it can be applied in real-world scenarios.
-    - Provide a closing remark that ties everything together and leaves a lasting impression.`,
+    **ACTIONABLE RECOMMENDATIONS**
+    Provide 3-5 concrete recommendations:
+    - Specific action items with clear ownership
+    - Implementation steps and timeline
+    - Expected outcomes and success metrics
+    - Potential challenges and mitigation strategies
+    - Resources needed for implementation
 
-  qa: `Based on the conversation, generate a set of hypothetical questions and answers that would be useful for preparation, study, or reference. Ensure the Q&A pairs are detailed, actionable, and cover the main topics discussed. Use the following format:
+    **STRATEGIC INSIGHTS**
+    Extract 2-3 high-level strategic insights:
+    - Long-term implications
+    - Broader context and industry impact
+    - Future opportunities or challenges
+    - Risk considerations and mitigation strategies
 
-    **Q&A SUMMARY**
-    Write a brief overview of the conversation's main topics and context. Explain why these Q&A pairs are relevant and how they can be used for learning or problem-solving.
+    **NEXT STEPS AND FOLLOW-UP**
+    Outline specific next steps:
+    - Immediate actions required
+    - Follow-up discussions needed
+    - Open questions to be addressed
+    - Timeline for key milestones`,
 
-    **QUESTIONS & ANSWERS**
-    Generate at least 5-10 hypothetical Q&A pairs. For each pair:
-    - Create a specific and relevant question someone might ask about the topic.
-    - Provide a detailed answer that includes examples, steps, or practical advice.
-    - Ensure the answer is thorough, actionable, and easy to understand.
+  qa: `You are an expert educator creating comprehensive Q&A documentation from conversation transcripts. Your goal is to create educational content that promotes deep understanding and practical application. Structure your analysis as follows:
 
-    **KEY TAKEAWAYS**
-    Summarize the Q&A with 3-5 key lessons or insights. For each takeaway:
-    - Explain how it can be applied in practice.
-    - Highlight its relevance and potential impact.
-    - Provide actionable advice or a call to action.`,
+    **LEARNING OBJECTIVES**
+    Begin with clear learning objectives:
+    - Core concepts to be mastered
+    - Skills to be developed
+    - Practical applications to be understood
+    - Expected learning outcomes
 
-  keyPoints: `Extract and organize the main points and insights from the conversation. Focus on providing detailed explanations, actionable insights, and clear connections to the broader topic. Use the following format:
+    **CONTEXT AND PREREQUISITES**
+    Provide essential background:
+    - Required prior knowledge
+    - Key terminology and concepts
+    - Relevant frameworks or methodologies
+    - Common misconceptions to address
 
-    **OVERVIEW**
-    Write a brief context and purpose of the conversation. Explain why these key points are important and how they relate to the main topic or goals.
+    **COMPREHENSIVE Q&A PAIRS**
+    Generate 8-12 detailed Q&A pairs that:
+    - Progress from fundamental to advanced concepts
+    - Cover both theoretical understanding and practical application
+    - Include real-world examples and case studies
+    - Address common challenges and edge cases
+    - Explain underlying principles and reasoning
 
-    **KEY POINTS**
-    Identify and explain at least 3-5 key insights or ideas from the conversation. For each point:
-    - Provide a detailed explanation with examples or context.
-    - Highlight its significance and practical implications.
-    - Explain how it can be applied or why it matters.
+    **PRACTICAL EXERCISES**
+    Provide 3-5 hands-on exercises:
+    - Step-by-step implementation guides
+    - Expected outcomes and success criteria
+    - Common pitfalls and troubleshooting tips
+    - Variations for different skill levels
 
-    **IMPORTANT CONCEPTS**
-    Define and explain 2-3 key concepts from the conversation. For each concept:
-    - Provide a clear definition and explanation.
-    - Include examples or analogies to enhance understanding.
-    - Highlight its relevance and practical applications.`,
+    **BEST PRACTICES AND GUIDELINES**
+    Document key guidelines:
+    - Industry standards and best practices
+    - Common mistakes to avoid
+    - Performance optimization tips
+    - Scalability considerations
 
-  codeSnippets: `Extract and organize code examples and technical explanations from the conversation. Focus on providing clear, detailed explanations, practical advice, and actionable insights. Use the following format:
+    **ADDITIONAL RESOURCES**
+    Suggest resources for further learning:
+    - Related topics to explore
+    - Advanced concepts to consider
+    - Practice exercises and challenges
+    - Tools and frameworks to investigate`,
 
-    **TECHNICAL SUMMARY**
-    Write a brief overview of the technical content discussed in the conversation. Explain the context, purpose, and relevance of the code examples.
+  keyPoints: `You are a technical documentation specialist tasked with extracting and organizing key insights from complex discussions. Your analysis should be thorough, well-structured, and immediately actionable. Structure your response as follows:
 
-    **CODE EXAMPLES**
-    Extract and explain at least 2-3 code examples. For each example:
-    - Describe what the code does and its purpose in detail.
-    - Include any prerequisites or dependencies.
-    - Provide the code in a clear, formatted block.
+    **EXECUTIVE OVERVIEW**
+    Provide a strategic overview:
+    - Core discussion objectives
+    - Context and background
+    - Key stakeholders and their interests
+    - Expected outcomes and deliverables
 
-    **TECHNICAL NOTES**
-    Provide 3-5 key technical details or insights from the conversation. For each note:
-    - Explain the detail with practical advice or examples.
-    - Highlight best practices, potential pitfalls, or actionable recommendations.`,
+    **KEY INSIGHTS AND FINDINGS**
+    Document 4-6 critical insights:
+    - Clear statement of each insight
+    - Supporting evidence and examples
+    - Impact on objectives and goals
+    - Implementation considerations
+    - Risk factors and dependencies
 
-  studyNotes: `Create organized, detailed study notes from the conversation. Focus on providing clear explanations, actionable insights, and practical applications. Use the following format:
+    **TECHNICAL CONCEPTS**
+    Explain 3-4 core technical concepts:
+    - Detailed technical explanation
+    - Real-world applications
+    - Implementation considerations
+    - Best practices and standards
+    - Common pitfalls and solutions
 
-    **TOPIC OVERVIEW**
-    Write a brief introduction to the topic. Explain the main purpose, context, and relevance of the conversation.
+    **IMPLEMENTATION ROADMAP**
+    Outline an actionable implementation plan:
+    - Immediate next steps
+    - Resource requirements
+    - Timeline and milestones
+    - Success metrics and KPIs
+    - Risk mitigation strategies
 
-    **MAIN CONCEPTS**
-    Identify and explain at least 3-5 main concepts from the conversation. For each concept:
-    - Provide a detailed explanation with examples or context.
-    - Explain how the concept can be applied in practice.
-    - Include actionable advice or step-by-step guidance.
+    **RECOMMENDATIONS AND BEST PRACTICES**
+    Provide specific guidance:
+    - Technical recommendations
+    - Process improvements
+    - Quality assurance measures
+    - Performance optimization strategies
+    - Maintenance and sustainability considerations`,
 
-    **IMPORTANT DEFINITIONS**
-    Define and explain 2-3 key terms from the conversation. For each term:
-    - Provide a clear definition and explanation.
-    - Include examples or analogies to enhance understanding.
-    - Highlight its relevance and practical applications.
+  codeSnippets: `You are a senior software developer documenting technical implementations and code examples. Your goal is to create clear, comprehensive, and maintainable technical documentation. Structure your analysis as follows:
 
-    **STUDY TIPS**
-    Provide 3-5 practical tips for studying or applying the topic. For each tip:
-    - Make it specific, actionable, and easy to follow.
-    - Focus on efficiency, retention, or real-world application.`,
+    **TECHNICAL CONTEXT**
+    Provide essential background:
+    - System architecture overview
+    - Dependencies and prerequisites
+    - Environmental requirements
+    - Target audience and skill level
+    - Expected outcomes and benefits
+
+    **CODE IMPLEMENTATION**
+    For each code example (minimum 3):
+    - Purpose and functionality
+    - Complete, working code snippet
+    - Step-by-step explanation
+    - Input/output specifications
+    - Error handling and edge cases
+    - Performance considerations
+    - Testing requirements
+
+    **IMPLEMENTATION NOTES**
+    Document important technical details:
+    - Architecture decisions and trade-offs
+    - Scalability considerations
+    - Security implications
+    - Performance optimization opportunities
+    - Integration requirements
+    - Deployment considerations
+
+    **BEST PRACTICES AND PATTERNS**
+    Outline development standards:
+    - Coding conventions
+    - Design patterns used
+    - Error handling strategies
+    - Logging and monitoring
+    - Testing approaches
+    - Documentation requirements
+
+    **TROUBLESHOOTING GUIDE**
+    Provide debugging guidance:
+    - Common issues and solutions
+    - Error messages and meanings
+    - Debugging strategies
+    - Performance profiling
+    - System health checks`,
+
+  studyNotes: `You are an educational content developer creating comprehensive study materials. Your goal is to facilitate effective learning through well-structured, practical content. Structure your notes as follows:
+
+    **LEARNING OBJECTIVES**
+    Define clear learning goals:
+    - Core concepts to master
+    - Skills to develop
+    - Practical applications
+    - Assessment criteria
+    - Prerequisites and assumptions
+
+    **CONCEPT BREAKDOWN**
+    For each main concept (4-6):
+    - Clear, concise definition
+    - Detailed explanation
+    - Real-world examples
+    - Common misconceptions
+    - Practice exercises
+    - Assessment questions
+
+    **PRACTICAL APPLICATIONS**
+    Document real-world usage:
+    - Case studies
+    - Implementation examples
+    - Problem-solving approaches
+    - Industry applications
+    - Current trends and developments
+
+    **STUDY STRATEGIES**
+    Provide effective learning approaches:
+    - Time management techniques
+    - Note-taking methods
+    - Memory retention strategies
+    - Practice methodologies
+    - Self-assessment tools
+
+    **KNOWLEDGE ASSESSMENT**
+    Include verification methods:
+    - Review questions
+    - Practice problems
+    - Self-assessment criteria
+    - Progress tracking
+    - Mastery indicators`
 };
 
-
 export const titlePrompt = ChatPromptTemplate.fromMessages([
-      SystemMessagePromptTemplate.fromTemplate(
-        "Generate a clear, concise, and professional title (3-5 words) that captures the main topic of this content."
-      ),
-      HumanMessagePromptTemplate.fromTemplate("{input}")
-    ]);
+  SystemMessagePromptTemplate.fromTemplate(
+    `You are a professional content analyst crafting precise, meaningful titles. Create a title that:
+    - Captures the main topic and key insight (3-5 words)
+    - Uses industry-standard terminology
+    - Avoids buzzwords and jargon
+    - Reflects the content's depth and scope
+    - Maintains professional tone and clarity`
+  ),
+  HumanMessagePromptTemplate.fromTemplate("{input}")
+]);
