@@ -3,27 +3,6 @@
 import { SignInButton } from "@/components/auth/signin-button"
 import { motion } from "framer-motion"
 
-// Update your tailwind.config.js with these new keyframes and animations
-const tailwindConfig = {
-  theme: {
-    extend: {
-      keyframes: {
-        shimmer: {
-          '0%': { backgroundPosition: '200% 0' },
-          '100%': { backgroundPosition: '-200% 0' }
-        },
-        float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' }
-        }
-      },
-      animation: {
-        shimmer: 'shimmer 8s linear infinite',
-        float: 'float 6s ease-in-out infinite'
-      }
-    }
-  }
-}
 
 export default function Signin() {
   return (

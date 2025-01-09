@@ -3,6 +3,7 @@ import "./globals.css"
 import { getServerSession } from "next-auth/next"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { authOptions } from "@/lib/auth/auth" 
+import { NotificationProvider } from "@/components/notificationProvider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -18,8 +19,10 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <AuthProvider session={session}>
-          
+        <NotificationProvider>
+
           {children}
+        </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

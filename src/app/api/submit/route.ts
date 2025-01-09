@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { CVAnalyzer } from '@/lib/ai/analysis';
+import { CVAnalyzer } from '@/lib/ai/cv/analysis';
 import mammoth from "mammoth";
 import PDFParser from 'pdf2json';
 

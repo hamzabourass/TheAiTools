@@ -145,8 +145,8 @@ const TestimonialsSection = () => (
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              "The Resume Analyzer has revolutionized our recruitment process. We save hours on each application 
-              while getting more detailed insights into candidates' capabilities."
+              &quot;The Resume Analyzer has revolutionized our recruitment process. We save hours on each application 
+              while getting more detailed insights into candidates capabilities.&quot;
             </p>
           </CardContent>
         </Card>
@@ -157,8 +157,8 @@ const TestimonialsSection = () => (
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              "Converting ChatGPT conversations to PDFs has made it so much easier to document technical 
-              discussions and share knowledge within our team."
+              &quot;Converting ChatGPT conversations to PDFs has made it so much easier to document technical 
+              discussions and share knowledge within our team.&quot;
             </p>
           </CardContent>
         </Card>
@@ -169,8 +169,8 @@ const TestimonialsSection = () => (
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              "The level of detail in the resume analysis helps my clients understand exactly what they 
-              need to improve. It's like having an expert assistant."
+              &quot;The level of detail in the resume analysis helps my clients understand exactly what they 
+              need to improve. It&apos;s like having an expert assistant.&quot;
             </p>
           </CardContent>
         </Card>

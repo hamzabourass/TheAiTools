@@ -1,21 +1,4 @@
-import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-
-if (!process.env.OPENAI_API_KEY) {
-  
-  throw new Error("OPENAI_API_KEY is not set in environment variables");
-}
-
-
-
-console.log(process.env.OPENAI_API_KEY);
-
-const model = new ChatOpenAI({
-  modelName: "gpt-4-turbo",
-  temperature: 0.7,
-  openAIApiKey: process.env.OPENAI_API_KEY
-});
 
 const scoringGuidelines = `
 Your scoring should follow these guidelines:
@@ -49,7 +32,7 @@ The generated email should:
 - Keep the length between 200-300 words
 `;
 
-const chatPrompt = ChatPromptTemplate.fromMessages([
+export const chatPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
     `You are a strict professional HR known for providing detailed and thorough feedback. Pay special attention to:
@@ -116,60 +99,3 @@ const chatPrompt = ChatPromptTemplate.fromMessages([
   ],
   new MessagesPlaceholder("chat_history")
 ]);
-
-const chain = chatPrompt
-  .pipe(model)
-  .pipe(new StringOutputParser());
-
-export class CVAnalyzer {
-  async analyzeCVAndJob(cvText: string, jobDescription: string) {
-    try {
-      console.log('Starting analysis with GPT-4-Turbo...');
-
-      if (!cvText || typeof cvText !== "string") {
-        throw new Error('Invalid CV text provided.');
-      }
-      if (!jobDescription || typeof jobDescription !== "string") {
-        throw new Error('Invalid job description provided.');
-      }
-
-      const response = await chain.invoke({
-        cv: cvText,
-        jobDescription: jobDescription,
-        chat_history: []
-      });
-
-      console.log('Input variables:', { cv: cvText, jobDescription: jobDescription });
-      console.log('Raw response:', response);
-
-      // Try to find JSON in the response
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No JSON found in the response');
-      }
-
-      try {
-        const analysis = JSON.parse(jsonMatch[0]);
-        console.log('Parsed analysis:', analysis);
-
-        const defaultAnalysis = {
-          technicalSkills: [],
-          softSkills: [],
-          matchScore: 0,
-          missingSkills: [],
-          improvements: [],
-          generatedEmail: "",
-          status: "complete"
-        };
-
-        return { ...defaultAnalysis, ...analysis };
-      } catch (parseError) {
-        console.error('JSON parsing error:', parseError);
-        throw new Error('Failed to parse analysis results');
-      }
-    } catch (error) {
-      console.error('Analysis error:', error);
-      throw error;
-    }
-  }
-}

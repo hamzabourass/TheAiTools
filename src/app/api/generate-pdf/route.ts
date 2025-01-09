@@ -1,4 +1,4 @@
-import { generateChatPDF } from '@/lib/pdf/generateChatPDF';
+import { generateChatPDF } from '@/lib/ai/pdf/generateChatPDF';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {

@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { useNotifications } from './notificationProvider';
 
 const ANALYSIS_TYPES = [
   {
@@ -59,11 +60,11 @@ export default function ChatExtractor() {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
-  const [generating, setGenerating] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedMessages, setExpandedMessages] = useState({});
+  const { setGeneratingNotification, setSuccess, showGenerating } = useNotifications();
 
-  const messagesPerPage = 5; // Number of messages to display per page
+  const messagesPerPage = 5;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,8 +76,8 @@ export default function ChatExtractor() {
     setLoading(true);
     setError('');
     setData(null);
-    setCurrentPage(1); // Reset pagination to the first page
-    setExpandedMessages({}); // Reset expanded messages
+    setCurrentPage(1);
+    setExpandedMessages({});
 
     try {
       const response = await fetch('/api/chat-extract', {
@@ -102,7 +103,7 @@ export default function ChatExtractor() {
   const handleDownload = async () => {
     if (!data) return;
 
-    setGenerating(true);
+    setGeneratingNotification(true);
     try {
       const response = await fetch('/api/generate-pdf', {
         method: 'POST',
@@ -123,17 +124,19 @@ export default function ChatExtractor() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      setSuccess(true);
     } catch (err) {
       setError(err.message);
     } finally {
-      setGenerating(false);
+      setGeneratingNotification(false);
     }
   };
 
   const toggleExpandMessage = (index) => {
     setExpandedMessages((prev) => ({
       ...prev,
-      [index]: !prev[index] // Toggle expanded state for the message
+      [index]: !prev[index]
     }));
   };
 
@@ -144,11 +147,9 @@ export default function ChatExtractor() {
     const totalMessages = messages.length;
     const averageMessageLength = messages.reduce((acc, msg) => acc + msg.content.length, 0) / totalMessages;
 
-    // Pagination logic
     const indexOfLastMessage = currentPage * messagesPerPage;
     const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;
     const currentMessages = messages.slice(indexOfFirstMessage, indexOfLastMessage);
-
     const totalPages = Math.ceil(totalMessages / messagesPerPage);
 
     return (
@@ -157,11 +158,11 @@ export default function ChatExtractor() {
           <h2 className="text-lg font-semibold">Analysis Results</h2>
           <Button
             onClick={handleDownload}
-            disabled={generating}
+            disabled={showGenerating}
             variant="outline"
             size="sm"
           >
-            {generating ? (
+            {showGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Generating...
@@ -175,7 +176,6 @@ export default function ChatExtractor() {
           </Button>
         </div>
 
-        {/* Analysis Summary */}
         <div className="space-y-4">
           <h3 className="text-md font-semibold">Summary</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -190,7 +190,6 @@ export default function ChatExtractor() {
           </div>
         </div>
 
-        {/* Messages Table */}
         <div className="space-y-4">
           <h3 className="text-md font-semibold">Messages</h3>
           <div className="overflow-x-auto">
@@ -240,7 +239,6 @@ export default function ChatExtractor() {
             </table>
           </div>
 
-          {/* Pagination with Arrows */}
           <div className="flex justify-center items-center gap-4">
             <Button
               variant="ghost"
@@ -270,20 +268,15 @@ export default function ChatExtractor() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="space-y-8">
-        {/* Header */}
-
         <div className="text-center mb-20 mt-5">
           <h1 className="text-4xl font-bold tracking-tight">ChatGPT Extractor</h1>
           <p className="text-lg text-muted-foreground">
-          Convert your ChatGPT chat conversations into organized documents using AI
+            Convert your ChatGPT chat conversations into organized documents using AI
           </p>
         </div>
 
-
-        {/* Main Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            {/* URL Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Chat URL</label>
               <Input
@@ -296,7 +289,6 @@ export default function ChatExtractor() {
               />
             </div>
 
-            {/* Analysis Type Select */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Analysis Type</label>
               <Select
@@ -329,7 +321,6 @@ export default function ChatExtractor() {
             </div>
           </div>
 
-          {/* Submit Button */}
           <Button 
             type="submit" 
             className="w-full"
@@ -349,14 +340,12 @@ export default function ChatExtractor() {
           </Button>
         </form>
 
-        {/* Error Message */}
         {error && (
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        {/* Results */}
         {data ? renderAnalysisResults() : (
           <div className="space-y-6 rounded-lg border bg-card p-6">
             <div className="flex items-center justify-between">
@@ -379,6 +368,9 @@ export default function ChatExtractor() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              Start by pasting a chat URL and selecting an analysis type
             </div>
           </div>
         )}
