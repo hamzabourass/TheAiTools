@@ -271,12 +271,14 @@ export default function ChatExtractor() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="space-y-8">
         {/* Header */}
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Chat Extractor</h1>
-          <p className="text-muted-foreground">
-            Convert your chat conversations into organized documents using AI
+
+        <div className="text-center mb-20 mt-5">
+          <h1 className="text-4xl font-bold tracking-tight">ChatGPT Extractor</h1>
+          <p className="text-lg text-muted-foreground">
+          Convert your ChatGPT chat conversations into organized documents using AI
           </p>
         </div>
+
 
         {/* Main Form */}
         <form onSubmit={handleSubmit} className="space-y-6">

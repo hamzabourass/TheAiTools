@@ -146,7 +146,7 @@ export function AnalysisResults({
                 emailBody={analysis.generatedEmail.body}
                 onSend={onSendEmail}
                 trigger={
-                  <Button className="w-full mt-4" variant="secondary">
+                  <Button className="w-full mt-4" >
                     <Mail className="w-4 h-4 mr-2" />
                     Send Email
                   </Button>
