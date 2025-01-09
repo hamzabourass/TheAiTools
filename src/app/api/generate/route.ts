@@ -1,4 +1,3 @@
-// app/api/generate/route.ts
 import { NextRequest } from 'next/server';
 import { DataGeneratorService } from '@/lib/ai/data-generator/dataGenerator';
 import Papa from 'papaparse';
@@ -18,16 +17,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate data only if it hasn't been generated yet
+    // Clear the cache if this is a new request (not an export)
+    const clearCache = !shouldExport;
+
+    // Generate data (clearing cache if needed)
     const result = await generator.generateData({
       format,
       rows,
       description,
       schema,
-    });
+    }, clearCache);
 
     // For direct download (when export button is clicked)
     if (shouldExport) {
+      // Clear the cache after export
+      generator.clearCache();
+
       return new Response(result.data, {
         headers: {
           'Content-Type': result.contentType,

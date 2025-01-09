@@ -1,4 +1,3 @@
-
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
@@ -22,12 +21,14 @@ export interface GeneratedData {
 
 export class DataGeneratorService {
   private model: ChatOpenAI;
-  private readonly CHUNK_SIZE = 50;
+  private readonly CHUNK_SIZE = 20;
   private cachedData: any[] | null = null; // Cache for generated data
+  private headers: string[] | null = null; // Memory for headers
+  private schema: Record<string, string> | null = null; // Memory for schema
 
   constructor(apiKey: string) {
     this.model = new ChatOpenAI({
-      modelName: "gpt-3.5-turbo",
+      modelName: "gpt-4-turbo",
       temperature: 0.7,
       openAIApiKey: apiKey,
     });
@@ -35,48 +36,34 @@ export class DataGeneratorService {
 
   private createPrompt(params: GenerateDataParams, startIndex: number, chunkSize: number): ChatPromptTemplate {
     const systemTemplate = `You are a precise data generator that ONLY outputs data in the exact format requested.
-Role: Generate synthetic data
-Output Format: ${params.format.toUpperCase()}
-Required: ONLY output the data, no explanations or text
-Must: Follow exact format rules with no deviations`;
+    Role: Generate synthetic data
+    Output Format: ${params.format.toUpperCase()}
+    Required: ONLY output the data, no explanations or text
+    Must: Follow exact format rules with no deviations`;
 
     const humanTemplate = `Format: ${params.format.toUpperCase()}
-Rows to generate: ${chunkSize}
-Starting at index: ${startIndex}
+    Rows to generate: ${chunkSize}
+    Starting at index: ${startIndex}
 
-${params.format === 'json' ? `OUTPUT FORMAT MUST BE EXACTLY:
-[
-  {
-    "field1": "value1",
-    "field2": "value2"
-  }
-]
+    ${params.format === 'csv' ? `OUTPUT FORMAT MUST BE EXACTLY:
+    ${this.headers ? this.headers.join(',') : 'field1,field2,field3'}
+    value1,value2,value3
+    value4,value5,value6
 
-REQUIRED JSON RULES:
-1. Start with [
-2. End with ]
-3. Use { } for each object
-4. Use " " for all keys and string values
-5. Use , between objects` : ''}
+    REQUIRED CSV RULES:
+    1. First row must be headers
+    2. Use comma (,) as separator
+    3. One record per line
+    4. No empty lines
+    5. No extra commas
+    6. Ensure all rows have the same number of columns as the headers` : ''}
 
-${params.format === 'csv' ? `OUTPUT FORMAT MUST BE EXACTLY:
-field1,field2,field3
-value1,value2,value3
-value4,value5,value6
+    Data requirements:
+    ${params.description}
+    ${this.schema ? `Schema: ${JSON.stringify(this.schema, null, 2)}` : ''}
 
-REQUIRED CSV RULES:
-1. First row must be headers
-2. Use comma (,) as separator
-3. One record per line
-4. No empty lines
-5. No extra commas` : ''}
-
-Data requirements:
-${params.description}
-${params.schema ? `Schema: ${JSON.stringify(params.schema, null, 2)}` : ''}
-
-Remember: Output ONLY the data with NO explanations or additional text.
-Must be parseable ${params.format.toUpperCase()} format.`;
+    Remember: Output ONLY the data with NO explanations or additional text.
+    Must be parseable ${params.format.toUpperCase()} format.`;
 
     return ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(systemTemplate),
@@ -105,23 +92,48 @@ Must be parseable ${params.format.toUpperCase()} format.`;
 
   private cleanCsvOutput(text: string): string {
     try {
+      // Remove any code block markers (e.g., ```csv```)
       const cleaned = text.replace(/```csv\s*/g, '').replace(/```\s*$/g, '').trim();
+  
+      // Split into lines and remove empty lines
       const lines = cleaned.split('\n')
         .map(line => line.trim())
         .filter(line => line.length > 0);
-
+  
       if (lines.length < 2) {
         throw new Error('CSV must have headers and at least one data row');
       }
-
-      const headerCount = lines[0].split(',').length;
-      const isValid = lines.every(line => line.split(',').length === headerCount);
-
-      if (!isValid) {
-        throw new Error('Inconsistent number of columns in CSV');
+  
+      // Extract headers
+      const headers = lines[0].split(',').map(header => header.trim());
+  
+      // Store headers in memory if not already set
+      if (!this.headers) {
+        this.headers = headers;
       }
-
-      return lines.join('\n');
+  
+      // Process data rows
+      const dataRows = lines.slice(1).map(line => {
+        // Handle quoted fields properly
+        const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
+        const values = [];
+        let match;
+  
+        while ((match = regex.exec(line)) !== null) {
+          values.push(match[0].trim());
+        }
+  
+        // Ensure the row has the same number of columns as the headers
+        if (values.length !== headers.length) {
+          // If not, pad with empty values or truncate
+          return headers.map((_, index) => values[index] || '').join(',');
+        }
+  
+        return values.join(',');
+      });
+  
+      // Rebuild the CSV
+      return [headers.join(','), ...dataRows].join('\n');
     } catch (error) {
       console.error('CSV cleaning error:', { original: text, error });
       throw new Error(`Invalid CSV structure: ${error.message}`);
@@ -156,6 +168,11 @@ Must be parseable ${params.format.toUpperCase()} format.`;
     const allData: any[] = [];
     const numChunks = Math.ceil(params.rows / this.CHUNK_SIZE);
 
+    // Store schema in memory if provided
+    if (params.schema && !this.schema) {
+      this.schema = params.schema;
+    }
+
     for (let i = 0; i < numChunks; i++) {
       const startIndex = i * this.CHUNK_SIZE;
       const remainingRows = params.rows - startIndex;
@@ -169,8 +186,13 @@ Must be parseable ${params.format.toUpperCase()} format.`;
     return allData;
   }
 
-  public async generateData(params: GenerateDataParams): Promise<GeneratedData> {
+  public async generateData(params: GenerateDataParams, clearCache: boolean = false): Promise<GeneratedData> {
     try {
+      // Clear the cache if requested
+      if (clearCache) {
+        this.clearCache();
+      }
+
       // Generate data only if it hasn't been cached
       if (!this.cachedData) {
         this.cachedData = await this.generateAllData(params);
@@ -216,8 +238,10 @@ Must be parseable ${params.format.toUpperCase()} format.`;
     }
   }
 
-  // Clear the cache (optional)
+  // Clear the cache and memory
   public clearCache(): void {
     this.cachedData = null;
+    this.headers = null;
+    this.schema = null;
   }
 }
