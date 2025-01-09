@@ -63,13 +63,17 @@ if (!session) {
   return (
     <div className="min-h-screen  dark:from-gray-900 dark:to-gray-800">
       <Header/>
+      <div className="text-center py-8 border-b">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        CV Assistant
+        </h1>
+        <p className="text-gray-600 max-w-2xl mx-auto px-4">
+        Optimize your job application with AI-powered CV analysis
+        </p>
+      </div>
       <div className="container mx-auto py-10 px-4">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold tracking-tight">CV Assistant</h1>
-          <p className="text-lg text-muted-foreground">
-            Optimize your job application with AI-powered CV analysis
-          </p>
-        </div>
+
+  
 
         <div className="flex justify-center">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start w-full max-w-7xl">

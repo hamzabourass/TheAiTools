@@ -26,7 +26,7 @@ export function ExpandableSkills({
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         {visibleSkills.map((skill, index) => (
-          <SkillTag key={index} skill={skill} variant={variant} />
+          <SkillTag key={index} skill={skill.name} variant={variant} />
         ))}
         <AnimatePresence>
           {isExpanded && hasMore && (
@@ -39,7 +39,7 @@ export function ExpandableSkills({
               {skills.slice(initialCount).map((skill, index) => (
                 <SkillTag 
                   key={index + initialCount} 
-                  skill={skill} 
+                  skill={skill.name} 
                   variant={variant} 
                 />
               ))}

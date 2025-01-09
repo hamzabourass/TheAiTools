@@ -1,105 +1,279 @@
 import { ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate } from "@langchain/core/prompts";
 
 export const analysisPrompts = {
-  summary: `Analyze the conversation and provide a detailed, structured summary with actionable insights. Focus on extracting key themes, outcomes, and practical recommendations. Ensure the output is clear, concise, and easy to follow. Use the following format:
+  summary: `Analyze the conversation comprehensively and provide a detailed, structured summary. The length and depth of analysis should be proportional to the conversation's size and complexity. Include all code examples and technical discussions in their entirety. For longer conversations (10+ messages), provide extensive analysis with multiple examples and detailed breakdowns. Use the following format:
 
-    **SUMMARY**
-    Write a concise yet comprehensive overview of the conversation. Highlight the main purpose, key themes, and any significant outcomes or conclusions. Include context to help the reader understand the conversation's relevance.
+    **EXECUTIVE SUMMARY**
+    Provide a comprehensive overview that:
+    - Summarizes the main discussion points, themes, and outcomes
+    - Outlines the context and background of the conversation
+    - Highlights critical decisions or conclusions reached
+    - Identifies key stakeholders and their perspectives
+    - Notes any technical specifications or requirements discussed
+    - Includes overview of any code or technical implementations discussed
 
-    **KEY POINTS**
-    Identify and explain at least 3-5 key takeaways from the conversation. For each point:
-    - Provide a detailed explanation with supporting examples or context.
-    - Explain why the point matters and how it connects to the broader discussion.
-    - Highlight its significance and practical implications.
+    **DETAILED ANALYSIS**
+    Break down the conversation into major themes or topics. For each theme:
+    - Provide in-depth analysis with specific examples from the conversation
+    - Include complete code snippets and technical discussions
+    - Document the evolution of ideas or solutions
+    - Include all implementation details and code examples
+    - Explain the purpose and functionality of each code segment
+    - Document any modifications or improvements discussed
+    - Note any assumptions or constraints discussed
 
-    **ACTIONABLE INSIGHTS**
-    Provide at least 3-5 specific recommendations or actions the user should take. For each insight:
-    - Clearly explain the steps, reasoning, and expected outcomes.
-    - Ensure the recommendations are practical, actionable, and easy to implement.
-    - Align the insights with the conversation's key themes.
+    **CODE IMPLEMENTATION** (When code is present)
+    Document all code-related discussions:
+    - Include complete code snippets with proper formatting
+    - Explain the purpose and functionality of each code block
+    - Note any dependencies or prerequisites
+    - Document setup and configuration requirements
+    - Include any debugging or optimization discussions
+    - Highlight best practices and potential pitfalls
+    - Include any alternative implementations discussed
+
+    **KEY FINDINGS**
+    Extract and analyze 5-10 significant findings (more for longer conversations). For each finding:
+    - Provide detailed explanation with direct references to the conversation
+    - Include supporting evidence and context
+    - Include relevant code examples and technical details
+    - Explain the implications and impact
+    - Connect it to broader objectives or challenges
+
+    **TECHNICAL CONSIDERATIONS**
+    Document technical aspects discussed:
+    - System requirements or specifications
+    - Complete code implementations with explanations
+    - Architecture decisions and their rationale
+    - Implementation details with code examples
+    - Performance considerations with code optimizations
+    - Security implications and code safeguards
+    - Integration requirements and code interfaces
+
+    **CHALLENGES AND SOLUTIONS**
+    Identify 4-8 major challenges discussed and their proposed solutions:
+    - Describe each challenge in detail
+    - Include code examples of problems and solutions
+    - Document proposed solutions with implementation details
+    - Include complete code fixes or workarounds
+    - Analyze the pros and cons of each approach
+    - Note any implementation considerations
+    - Include testing and validation approaches
+
+    **ACTIONABLE RECOMMENDATIONS**
+    Provide 6-10 specific, detailed recommendations. For each:
+    - Outline concrete steps for implementation
+    - Include code examples where relevant
+    - Explain the reasoning and expected benefits
+    - Provide complete code solutions when applicable
+    - Include resource requirements or prerequisites
+    - Define success criteria or metrics
+
+    **IMPLEMENTATION ROADMAP**
+    Create a structured plan for executing recommendations:
+    - Break down into immediate, short-term, and long-term actions
+    - Include specific code implementations for each phase
+    - Define dependencies and prerequisites
+    - Provide complete technical specifications
+    - Include code migration or update plans
+    - Suggest resource allocation and technical requirements
 
     **CONCLUSIONS**
-    Summarize the conversation with 2-3 high-level takeaways or lessons. For each conclusion:
-    - Explain its importance and how it can be applied in real-world scenarios.
-    - Provide a closing remark that ties everything together and leaves a lasting impression.`,
+    Provide comprehensive closing thoughts:
+    - Summarize major themes and technical decisions
+    - Include final code recommendations
+    - Highlight critical next steps in implementation
+    - Note areas requiring further technical discussion
+    - Include risk mitigation strategies with code considerations
+    - Suggest technical follow-up actions`,
 
-  qa: `Based on the conversation, generate a set of hypothetical questions and answers that would be useful for preparation, study, or reference. Ensure the Q&A pairs are detailed, actionable, and cover the main topics discussed. Use the following format:
+  qa: `Generate a comprehensive Q&A document based on the conversation. For longer conversations, create extensive question sets with detailed answers covering all major topics and subtopics, including all code examples and technical implementations. Use the following format:
 
-    **Q&A SUMMARY**
-    Write a brief overview of the conversation's main topics and context. Explain why these Q&A pairs are relevant and how they can be used for learning or problem-solving.
+    **CONTEXT OVERVIEW**
+    Provide detailed background:
+    - Main topics and themes covered
+    - Technical context and code overview
+    - Discussion context and objectives
+    - Key stakeholders and their concerns
+    - Technical or domain-specific context
+    - Overview of code implementations discussed
 
-    **QUESTIONS & ANSWERS**
-    Generate at least 5-10 hypothetical Q&A pairs. For each pair:
-    - Create a specific and relevant question someone might ask about the topic.
-    - Provide a detailed answer that includes examples, steps, or practical advice.
-    - Ensure the answer is thorough, actionable, and easy to understand.
+    **FUNDAMENTAL Q&A**
+    Create 8-12 basic Q&A pairs covering core concepts. Each answer should:
+    - Provide comprehensive explanation
+    - Include relevant code examples
+    - Explain technical concepts clearly
+    - Include practical implementations
+    - Address common issues
+    - Provide working solutions
 
-    **KEY TAKEAWAYS**
-    Summarize the Q&A with 3-5 key lessons or insights. For each takeaway:
-    - Explain how it can be applied in practice.
-    - Highlight its relevance and potential impact.
-    - Provide actionable advice or a call to action.`,
+    **TECHNICAL Q&A** (When code is present)
+    Develop 10-15 technical Q&A pairs. Each answer should:
+    - Include complete code implementations
+    - Provide step-by-step explanations
+    - Explain code functionality in detail
+    - Include setup and configuration steps
+    - Address common errors and solutions
+    - Provide optimization tips
+    - Include testing approaches
 
-  keyPoints: `Extract and organize the main points and insights from the conversation. Focus on providing detailed explanations, actionable insights, and clear connections to the broader topic. Use the following format:
+    **PROBLEM-SOLVING Q&A**
+    Present 6-10 real-world scenarios with detailed solutions:
+    Q: [Specific problem scenario]
+    A: 
+    - Detailed problem analysis
+    - Complete code solution
+    - Step-by-step implementation guide
+    - Alternative approaches
+    - Testing and validation steps
+    - Common pitfalls and solutions
+    - Performance considerations
 
-    **OVERVIEW**
-    Write a brief context and purpose of the conversation. Explain why these key points are important and how they relate to the main topic or goals.
+    **ADVANCED Q&A**
+    Include 8-12 advanced Q&A pairs. Each answer should:
+    - Provide in-depth technical explanation
+    - Include complete code implementations
+    - Cover edge cases and special situations
+    - Include optimization techniques
+    - Provide performance tips
+    - Address scaling considerations
+    - Include best practices
 
-    **KEY POINTS**
-    Identify and explain at least 3-5 key insights or ideas from the conversation. For each point:
-    - Provide a detailed explanation with examples or context.
-    - Highlight its significance and practical implications.
-    - Explain how it can be applied or why it matters.
+    **IMPLEMENTATION Q&A**
+    Provide 6-8 implementation-focused Q&A pairs. Each answer should:
+    - Include complete code solutions
+    - Provide step-by-step implementation guides
+    - Include configuration details
+    - Address common implementation challenges
+    - Provide testing strategies
+    - Include deployment considerations
+    - Cover maintenance aspects
 
-    **IMPORTANT CONCEPTS**
-    Define and explain 2-3 key concepts from the conversation. For each concept:
-    - Provide a clear definition and explanation.
-    - Include examples or analogies to enhance understanding.
-    - Highlight its relevance and practical applications.`,
+    **BEST PRACTICES Q&A**
+    Include 5-8 Q&A pairs covering best practices. Each answer should:
+    - Provide detailed explanations
+    - Include code examples
+    - Cover optimization strategies
+    - Include maintenance tips
+    - Address scalability
+    - Provide performance guidelines
+    - Include security considerations`,
 
-  codeSnippets: `Extract and organize code examples and technical explanations from the conversation. Focus on providing clear, detailed explanations, practical advice, and actionable insights. Use the following format:
+  keyPoints: `Extract and analyze key points from the conversation, scaling the depth and detail based on conversation length. Include all code examples and technical implementations. For longer conversations, provide extensive analysis of each point. Use the following format:
 
-    **TECHNICAL SUMMARY**
-    Write a brief overview of the technical content discussed in the conversation. Explain the context, purpose, and relevance of the code examples.
+    **STRATEGIC OVERVIEW**
+    Provide comprehensive context:
+    - Main objectives and goals
+    - Technical scope and requirements
+    - Code implementation overview
+    - Key stakeholders and their interests
+    - Critical success factors
+    - Technical or business context
 
-    **CODE EXAMPLES**
-    Extract and explain at least 2-3 code examples. For each example:
-    - Describe what the code does and its purpose in detail.
-    - Include any prerequisites or dependencies.
-    - Provide the code in a clear, formatted block.
+    **CORE THEMES**
+    Identify and analyze 5-8 major themes. For each:
+    - Detailed theme description and context
+    - Complete code implementations
+    - Technical specifications and requirements
+    - Supporting evidence from conversation
+    - Impact and implications
+    - Implementation considerations
 
-    **TECHNICAL NOTES**
-    Provide 3-5 key technical details or insights from the conversation. For each note:
-    - Explain the detail with practical advice or examples.
-    - Highlight best practices, potential pitfalls, or actionable recommendations.`,
+    **TECHNICAL INSIGHTS**
+    Document 6-10 technical insights:
+    - Complete code examples and implementations
+    - Architectural decisions with code samples
+    - Implementation details with examples
+    - Performance considerations and optimizations
+    - Security implications and safeguards
+    - Integration requirements and interfaces
+    - Scaling factors and solutions
 
-  studyNotes: `Create organized, detailed study notes from the conversation. Focus on providing clear explanations, actionable insights, and practical applications. Use the following format:
+    **CRITICAL DECISIONS**
+    Analyze 5-8 key decisions. For each:
+    - Decision context and rationale
+    - Complete code implementations
+    - Technical specifications
+    - Alternatives considered with code examples
+    - Impact analysis and considerations
+    - Implementation implications
+    - Risk considerations
 
-    **TOPIC OVERVIEW**
-    Write a brief introduction to the topic. Explain the main purpose, context, and relevance of the conversation.
+    **IMPLEMENTATION CONSIDERATIONS**
+    Document 6-10 implementation factors:
+    - Complete technical requirements
+    - Code examples and solutions
+    - Resource needs and specifications
+    - Timeline considerations
+    - Dependencies and prerequisites
+    - Risk factors and mitigations
+    - Success criteria and metrics`,
 
-    **MAIN CONCEPTS**
-    Identify and explain at least 3-5 main concepts from the conversation. For each concept:
-    - Provide a detailed explanation with examples or context.
-    - Explain how the concept can be applied in practice.
-    - Include actionable advice or step-by-step guidance.
+  studyNotes: `Create comprehensive study notes that thoroughly cover all aspects of the conversation, including all code examples and technical implementations. For longer conversations, provide in-depth analysis and examples for each topic. Use the following format:
 
-    **IMPORTANT DEFINITIONS**
-    Define and explain 2-3 key terms from the conversation. For each term:
-    - Provide a clear definition and explanation.
-    - Include examples or analogies to enhance understanding.
-    - Highlight its relevance and practical applications.
+    **COMPREHENSIVE OVERVIEW**
+    Provide detailed context:
+    - Subject matter introduction
+    - Technical overview and requirements
+    - Code implementation summary
+    - Learning objectives and goals
+    - Prerequisites and dependencies
+    - Technical requirements
+    - Practical applications
 
-    **STUDY TIPS**
-    Provide 3-5 practical tips for studying or applying the topic. For each tip:
-    - Make it specific, actionable, and easy to follow.
-    - Focus on efficiency, retention, or real-world application.`,
+    **CORE CONCEPTS**
+    Analyze 8-12 fundamental concepts. For each:
+    - Detailed concept explanation
+    - Complete code examples
+    - Implementation details
+    - Common misconceptions and solutions
+    - Technical considerations
+    - Best practices and optimizations
+
+    **TECHNICAL DEEP DIVE**
+    Cover 6-10 technical aspects:
+    - Complete code implementations
+    - Architectural patterns with examples
+    - Implementation details and samples
+    - Code examples and use cases
+    - Performance optimizations
+    - Security considerations
+    - Integration patterns and examples
+
+    **PRACTICAL APPLICATIONS**
+    Provide 8-12 real-world applications:
+    - Complete implementation examples
+    - Working code solutions
+    - Use case scenarios with code
+    - Problem-solving approaches
+    - Best practices and patterns
+    - Common pitfalls and fixes
+    - Testing and validation
+
+    **ADVANCED TOPICS**
+    Explore 6-8 advanced concepts:
+    - Complex scenarios with solutions
+    - Complete code implementations
+    - Edge cases and handling
+    - Optimization strategies
+    - Scaling considerations
+    - Advanced patterns
+    - Performance tuning
+
+    **LEARNING EXERCISES**
+    Include 8-12 practice exercises:
+    - Complete code challenges
+    - Implementation assignments
+    - Design problems with solutions
+    - Integration exercises
+    - Debugging scenarios
+    - Optimization tasks
+    - Testing exercises`
 };
 
-
 export const titlePrompt = ChatPromptTemplate.fromMessages([
-      SystemMessagePromptTemplate.fromTemplate(
-        "Generate a clear, concise, and professional title (3-5 words) that captures the main topic of this content."
-      ),
-      HumanMessagePromptTemplate.fromTemplate("{input}")
-    ]);
+  SystemMessagePromptTemplate.fromTemplate(
+    "Generate a clear, descriptive, and professional title (4-6 words) that accurately represents the depth and complexity of the content. If the content is technical, include relevant technical terms."
+  ),
+  HumanMessagePromptTemplate.fromTemplate("{input}")
+]);

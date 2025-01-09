@@ -8,7 +8,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Loader2, 
   FileText, 
-  Code,
   BookOpen,
   ListChecks,
   MessageSquare,
@@ -39,12 +38,6 @@ const ANALYSIS_TYPES = [
     label: 'Key Points',
     icon: ListChecks,
     description: 'Extract main points and concepts'
-  },
-  {
-    id: 'codeSnippets',
-    label: 'Code Snippets',
-    icon: Code,
-    description: 'Extract and format code examples'
   },
   {
     id: 'studyNotes',
@@ -266,14 +259,22 @@ export default function ChatExtractor() {
   };
 
   return (
+
+    <>         
+    <div className="text-center py-8 border-b">
+    <h1 className="text-3xl font-bold text-gray-900 mb-2">
+    ChatGPT Extractor
+    </h1>
+    <p className="text-gray-600 max-w-2xl mx-auto px-4">
+    Convert your ChatGPT chat conversations into organized documents using AI
+    </p>
+    </div>
     <div className="max-w-4xl mx-auto p-6">
+
       <div className="space-y-8">
-        <div className="text-center mb-20 mt-5">
-          <h1 className="text-4xl font-bold tracking-tight">ChatGPT Extractor</h1>
-          <p className="text-lg text-muted-foreground">
-            Convert your ChatGPT chat conversations into organized documents using AI
-          </p>
-        </div>
+
+
+     
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
@@ -376,5 +377,6 @@ export default function ChatExtractor() {
         )}
       </div>
     </div>
+    </>
   );
 }

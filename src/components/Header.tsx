@@ -18,7 +18,7 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { Menu, LogOut, Settings, User, FileText, MessageSquare, Sparkles, X } from "lucide-react"
+import { Menu, LogOut, Settings, User, FileText, MessageSquare, Sparkles, DatabaseIcon } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
@@ -59,6 +59,13 @@ export function Header() {
                 <MessageSquare className="w-4 h-4" />
                 Chat Converter
               </Link>
+              <Link 
+                href="/generate-data" 
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+              >
+                <DatabaseIcon className="w-4 h-4" />
+                Generate Data
+              </Link>
             </div>
           </SheetContent>
         </Sheet>
@@ -84,6 +91,14 @@ export function Header() {
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Chat Converter
+              </NavigationMenuLink>
+            </Link>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <Link href="/generate-data" legacyBehavior passHref>
+              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                <DatabaseIcon className="w-4 h-4 mr-2" />
+                Generate Data
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>

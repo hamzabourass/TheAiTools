@@ -19,28 +19,70 @@ interface ChatData {
   analysisType: string;
 }
 
-// Helper function to detect if text is likely code
 function isCodeBlock(text: string): boolean {
-  // Common code indicators
-  const codePatterns = [
-    /^```[\s\S]*?```$/m,                    // Markdown code blocks
-    /\b(function|class|import|export)\b/,    // Common programming keywords
-    /[{}\[\]()];$/m,                        // Lines ending with common code syntax
-    /^\s*(const|let|var)\s+\w+\s*=/m,       // Variable declarations
-    /=>/,                                    // Arrow functions
-    /^[\s]*if\s*\(.*\)\s*{/m,              // If statements
-    /^[\s]*for\s*\(.*\)\s*{/m,             // For loops
-    /^[\s]*while\s*\(.*\)\s*{/m,           // While loops
-    /\b(return|await|async)\b/,             // Common programming keywords
-    /^[\s]*@\w+/m,                          // Decorators
-    /<[^>]+>/,                              // HTML/XML tags
-    /^[\s]*#include/m,                      // C/C++ includes
-    /^[\s]*import\s+.*from/m,               // ES6 imports
-    /^[\s]*package\s+\w+/m,                 // Java/Kotlin packages
-    /^[\s]*def\s+\w+\s*\(/m,               // Python function definitions
+  // Check if it's already marked as code with backticks
+  if (text.startsWith('```') || text.endsWith('```')) {
+    return true;
+  }
+
+  // Count code indicators
+  let codeIndicators = 0;
+  
+  // Strong code indicators (more weight)
+  const strongPatterns = [
+    /^(const|let|var|function|class)\s+[\w$_]/m,      // Variable/function declarations
+    /^import\s+.*\s+from\s+['"].*['"]/m,              // ES6 imports
+    /^export\s+(default\s+)?(function|class|const)/m,  // ES6 exports
+    /^public\s+(class|interface|enum)\s+\w+/m,         // Java/C# class definitions
+    /^def\s+\w+\s*\([^)]*\):/m,                       // Python function
+    /^package\s+[\w.]+;/m,                             // Java/Kotlin package
+    /^#include\s+[<"].*[>"]/m                          // C/C++ include
   ];
 
-  return codePatterns.some(pattern => pattern.test(text));
+  // Medium code indicators
+  const mediumPatterns = [
+    /\s*if\s*\([^)]+\)\s*{/m,                         // if statements
+    /\s*for\s*\([^)]+\)\s*{/m,                        // for loops
+    /\s*while\s*\([^)]+\)\s*{/m,                      // while loops
+    /^\s*@\w+(\([^)]*\))?$/m,                         // Decorators
+    /=>\s*{/,                                          // Arrow function
+    /\s*try\s*{\s*$/m,                                // Try blocks
+    /^async\s+function/m                               // Async functions
+  ];
+
+  // Weak code indicators
+  const weakPatterns = [
+    /[{}\[\]();]/g,                                    // Code syntax
+    /\b(return|await|async)\b/,                        // Keywords
+    /['"`].*['"`]/,                                    // String literals
+    /\b(true|false|null|undefined)\b/,                 // Constants
+    /\b(console|window|document)\./                    // Common objects
+  ];
+
+  // Check patterns and count indicators
+  strongPatterns.forEach(pattern => {
+    if (pattern.test(text)) codeIndicators += 3;
+  });
+
+  mediumPatterns.forEach(pattern => {
+    if (pattern.test(text)) codeIndicators += 2;
+  });
+
+  weakPatterns.forEach(pattern => {
+    if (pattern.test(text)) codeIndicators += 1;
+  });
+
+  // Additional structural checks
+  if (text.split('\n').some(line => line.trim().startsWith('//'))) {
+    codeIndicators += 2; // Comments are a good indicator
+  }
+
+  if (text.includes('{') && text.includes('}')) {
+    codeIndicators += 2; // Matching braces are a good indicator
+  }
+
+  // Require multiple indicators for better accuracy
+  return codeIndicators >= 4;
 }
 
 async function generateTitle(content: string) {
@@ -62,13 +104,12 @@ async function generateTitle(content: string) {
 async function analyzeChat(messages: Message[], analysisType: string) {
   try {
     const model = new ChatOpenAI({
-      modelName: "gpt-4-turbo",
+      modelName: "gpt-3.5-turbo",
       temperature: 0.7,
       openAIApiKey: process.env.OPENAI_API_KEY
     });
 
     const prompt = analysisPrompts[analysisType] || analysisPrompts.summary;
-    
     const chatPrompt = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(prompt),
       HumanMessagePromptTemplate.fromTemplate("{input}")
@@ -101,6 +142,84 @@ async function analyzeChat(messages: Message[], analysisType: string) {
   }
 }
 
+function renderCodeBlock(doc: jsPDF, code: string, margin: any, textWidth: number, yPos: number) {
+  const currentFontSize = doc.getFontSize();
+  const currentFont = doc.getFont().fontName;
+  
+  // Save position for box drawing
+  const startY = yPos - 4;
+  
+  // Set code font and size
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(10);
+  
+  // Clean up code and split into lines
+  const cleanCode = code.replace(/```/g, '').trim();
+  const lines = doc.splitTextToSize(cleanCode, textWidth - 10);
+  const blockHeight = (lines.length * 6) + 8;
+  
+  // Draw background box
+  doc.setFillColor(250, 250, 250);
+  doc.setDrawColor(240, 240, 240);
+  doc.setLineWidth(0.5);
+  doc.rect(margin.left - 2, startY, textWidth + 4, blockHeight, 'FD');
+  
+  // Draw side marking
+  doc.setDrawColor(230, 230, 230);
+  doc.setLineWidth(2);
+  doc.line(margin.left, startY, margin.left, startY + blockHeight);
+  
+  // Add code content with proper indentation
+  lines.forEach((line: string, index: number) => {
+    // Calculate indentation level based on leading spaces
+    const leadingSpaces = line.match(/^\s*/)[0].length;
+    const indent = leadingSpaces * 2;
+    
+    // Remove the leading spaces since we're handling indentation manually
+    const trimmedLine = line.trimLeft();
+    
+    // Draw the line with calculated indentation
+    doc.text(trimmedLine, margin.left + 6 + indent, yPos + (index * 6));
+  });
+
+  // Restore original styles
+  doc.setFont(currentFont, 'normal');
+  doc.setFontSize(currentFontSize);
+  doc.setDrawColor(0);
+  doc.setFillColor(0);
+  
+  return blockHeight; // Return height for proper spacing
+}
+
+function addHeader(doc: jsPDF, pageWidth: number, margin: any) {
+  doc.setDrawColor(240, 240, 240);
+  doc.setLineWidth(0.3);
+  doc.line(margin.left, margin.top - 5, pageWidth - margin.right, margin.top - 5);
+}
+
+function addFooter(doc: jsPDF, pageHeight: number, margin: any, pageWidth: number) {
+  const totalPages = doc.internal.getNumberOfPages();
+  
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    
+    // Add subtle line above footer
+    doc.setDrawColor(240, 240, 240);
+    doc.setLineWidth(0.3);
+    doc.line(margin.left, pageHeight - margin.bottom + 10, pageWidth - margin.right, pageHeight - margin.bottom + 10);
+    
+    // Add page number
+    doc.setFontSize(10);
+    doc.setFont('times', 'normal');
+    doc.text(
+      `Page ${i} of ${totalPages}`,
+      pageWidth / 2,
+      pageHeight - margin.bottom + 15,
+      { align: 'center' }
+    );
+  }
+}
+
 export async function generateChatPDF(chatData: ChatData) {
   try {
     let analysis = await analyzeChat(chatData.messages, chatData.analysisType);
@@ -114,50 +233,74 @@ export async function generateChatPDF(chatData: ChatData) {
       format: 'a4'
     });
 
-    // Style constants
-    const margin = 25;
+    const margin = {
+      top: 25,
+      bottom: 25,
+      left: 25,
+      right: 25
+    };
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
-    const textWidth = pageWidth - (2 * margin);
-    let yPos = margin;
+    const textWidth = pageWidth - (margin.left + margin.right);
+    let yPos = margin.top;
 
-    // Set Times Roman font
     doc.setFont('times', 'normal');
 
-    // Title
-    doc.setFontSize(24);
-    doc.setFont('times', 'bold');
-    doc.text(title, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 15;
 
-    // Metadata
+    // Title section with improved spacing
+    doc.setFontSize(18);
+    doc.setFont('times', 'bold');
+    doc.text(title, pageWidth / 2, yPos, { align: 'center', maxWidth: textWidth });
+    yPos += 15;  // Reduced from 20
+
+    // Add decorative line under title
+    doc.setDrawColor(240, 240, 240);
+    doc.setLineWidth(0.5);
+    const titleWidth = Math.min(doc.getTextWidth(title), textWidth);
+    const titleLineStart = (pageWidth - titleWidth) / 2;
+    doc.line(titleLineStart, yPos - 8, titleLineStart + titleWidth, yPos - 8);
+
+    // Metadata section with subtle box
     doc.setFontSize(10);
     doc.setFont('times', 'normal');
-    doc.text(`Analysis Type: ${chatData.analysisType}`, pageWidth - margin, yPos, { align: 'right' });
-    yPos += 10;
+    const dateStr = new Date().toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+    
+    doc.setDrawColor(240, 240, 240);
+    const metaHeight = 12;  // Reduced from 15
+    doc.roundedRect(margin.left, yPos - 5, textWidth, metaHeight, 2, 2, 'S');
+    doc.text(`Analysis Type: ${chatData.analysisType}`, margin.left + 5, yPos + 3);
+    doc.text(`Generated: ${dateStr}`, pageWidth - margin.right - 5, yPos + 3, { align: 'right' });
+    yPos += metaHeight + 10;  // Reduced from 15
 
-    // Add a subtle divider
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.2);
-    doc.line(margin, yPos, pageWidth - margin, yPos);
-    yPos += 10;
-
-    // Process content with enhanced code block handling
+    // Process content
     const sections = analysis.split('\n');
     let inCodeBlock = false;
     let codeBlockBuffer = [];
 
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i].trim();
-      if (!section) continue;
+      if (!section) {
+        yPos += 3;
+        continue;
+      }
 
-      // Check for code block markers or detect code
+      // Check for page break
+      if (yPos > pageHeight - margin.bottom - 20) {
+        doc.addPage();
+        yPos = margin.top;
+        addHeader(doc, pageWidth, margin);
+      }
+
+      // Handle code blocks
       if (section.startsWith('```') || (section.endsWith('```') && inCodeBlock)) {
         inCodeBlock = !inCodeBlock;
         if (!inCodeBlock && codeBlockBuffer.length > 0) {
-          // Render the accumulated code block
           renderCodeBlock(doc, codeBlockBuffer.join('\n'), margin, textWidth, yPos);
-          yPos += (codeBlockBuffer.length * 7) + 10;
+          yPos += (codeBlockBuffer.length * 7) + 15;
           codeBlockBuffer = [];
         }
         continue;
@@ -168,95 +311,57 @@ export async function generateChatPDF(chatData: ChatData) {
         continue;
       }
 
-      // Check for inline code or code-like content
       if (isCodeBlock(section)) {
         renderCodeBlock(doc, section, margin, textWidth, yPos);
-        yPos += 15;
+        yPos += 20;
         continue;
       }
 
-      // Handle different section types
+      // Section headers
       if (section.toUpperCase() === section && section.length > 3) {
-        // Section headers
-        yPos += 10;
+        yPos += 8;  // Reduced from 15
         doc.setFontSize(16);
         doc.setFont('times', 'bold');
-        doc.text(section, margin, yPos);
-        yPos += 8;
-      } else if (section.startsWith('•') || section.startsWith('-')) {
-        // Bullet points
+        
+        // Draw text first
+        doc.text(section, margin.left, yPos);
+        
+        // Add underline after text
+        const headerWidth = doc.getTextWidth(section);
+        doc.setDrawColor(210, 210, 210);
+        doc.setLineWidth(0.4);
+        doc.line(margin.left, yPos + 2, margin.left + headerWidth, yPos + 2);
+        
+        yPos += 8;  // Reduced from 12
+      }
+      // Bullet points
+      else if (section.startsWith('•') || section.startsWith('-')) {
         doc.setFontSize(12);
         doc.setFont('times', 'normal');
-        const contentLines = doc.splitTextToSize(section, textWidth - 5);
         
-        if (yPos + (contentLines.length * 7) > pageHeight - margin) {
-          doc.addPage();
-          yPos = margin;
-        }
+        const bulletIndent = 8;
+        const contentLines = doc.splitTextToSize(section.substring(1).trim(), textWidth - bulletIndent);
         
-        doc.text(contentLines, margin + 5, yPos);
-        yPos += contentLines.length * 7 + 3;
-      } else {
-        // Regular text
+        doc.text('•', margin.left + 3, yPos);
+        doc.text(contentLines, margin.left + bulletIndent, yPos);
+        yPos += contentLines.length * 6 + 3;  // Reduced spacing
+      }
+      // Regular text
+      else {
         doc.setFontSize(12);
         doc.setFont('times', 'normal');
         const contentLines = doc.splitTextToSize(section, textWidth);
-        
-        if (yPos + (contentLines.length * 7) > pageHeight - margin) {
-          doc.addPage();
-          yPos = margin;
-        }
-        
-        doc.text(contentLines, margin, yPos);
-        yPos += contentLines.length * 7 + 3;
+        doc.text(contentLines, margin.left, yPos);
+        yPos += contentLines.length * 6 + 3;  // Reduced spacing
       }
     }
 
-    // Footer
-    doc.setFontSize(10);
-    doc.setFont('times', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    // Add footer with page numbers
+    addFooter(doc, pageHeight, margin, pageWidth);
 
     return Buffer.from(doc.output('arraybuffer'));
   } catch (error) {
     console.error('Error in generateChatPDF:', error);
     throw error;
   }
-}
-
-// Helper function to render code blocks with proper styling
-function renderCodeBlock(doc: jsPDF, code: string, margin: number, textWidth: number, yPos: number) {
-  // Save current styles
-  const currentFontSize = doc.getFontSize();
-  const currentTextColor = doc.getTextColor();
-
-  // Set code block styles
-  doc.setFont('courier', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(0, 0, 128); // Dark blue for code
-  
-  // Add background
-  doc.setFillColor(245, 245, 250); // Light gray-blue background
-  const lines = doc.splitTextToSize(code, textWidth - 10);
-  const blockHeight = (lines.length * 7) + 6; // Add padding
-  
-  // Draw background with rounded corners
-  doc.roundedRect(margin - 2, yPos - 4, textWidth + 4, blockHeight, 2, 2, 'F');
-  
-  // Add border
-  doc.setDrawColor(220, 220, 230);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(margin - 2, yPos - 4, textWidth + 4, blockHeight, 2, 2, 'S');
-
-  // Draw code content
-  lines.forEach((line: string, index: number) => {
-    doc.text(line, margin, yPos + (index * 7));
-  });
-
-  // Restore original styles
-  doc.setFont('times', 'normal');
-  doc.setFontSize(currentFontSize);
-  doc.setTextColor(currentTextColor);
-  doc.setDrawColor(200, 200, 200);
 }
