@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +18,10 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { LogOut, Settings, User, FileText, MessageSquare, Sparkles } from "lucide-react"
+import { Menu, LogOut, Settings, User, FileText, MessageSquare, Sparkles, X } from "lucide-react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 
 export function Header() {
   const { data: session } = useSession()
@@ -27,14 +30,46 @@ export function Header() {
 
   return (
     <div className="flex items-center justify-between p-4 bg-white border-b">
-      <div className="flex-1">
-        <Link href="/" className="flex items-center gap-2 mr-8">
+      <div className="flex items-center gap-2">
+        <Sheet>
+          <SheetTrigger asChild className="lg:hidden">
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64">
+            <SheetHeader>
+              <SheetTitle></SheetTitle>
+              <SheetDescription>
+                
+              </SheetDescription>
+            </SheetHeader>
+            <div className="flex flex-col gap-4 mt-4">
+              <Link 
+                href="/resume-analyzer" 
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+              >
+                <FileText className="w-4 h-4" />
+                Resume Analyzer
+              </Link>
+              <Link 
+                href="/chat-converter" 
+                className="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Chat Converter
+              </Link>
+            </div>
+          </SheetContent>
+        </Sheet>
+        
+        <Link href="/" className="flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" />
           <span className="text-xl font-semibold">The AI Tools</span>
         </Link>
       </div>
       
-      <NavigationMenu className="flex-1 flex justify-center">
+      <NavigationMenu className="hidden lg:flex justify-center">
         <NavigationMenuList>
           <NavigationMenuItem>
             <Link href="/resume-analyzer" legacyBehavior passHref>
@@ -55,10 +90,10 @@ export function Header() {
         </NavigationMenuList>
       </NavigationMenu>
 
-      <div className="flex-1 flex justify-end">
+      <div className="flex items-center">
         <DropdownMenu>
           <DropdownMenuTrigger className="outline-none">
-            <Avatar className="h-10 w-10 cursor-pointer ring-offset-2 transition-all hover:ring-2 hover:ring-primary">
+            <Avatar className="h-8 w-8 lg:h-10 lg:w-10 cursor-pointer ring-offset-2 transition-all hover:ring-2 hover:ring-primary">
               <AvatarImage src={session.user?.image || ''} alt={session.user?.name || ''} />
               <AvatarFallback>{session.user?.name?.[0]}</AvatarFallback>
             </Avatar>
