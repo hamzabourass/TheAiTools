@@ -24,14 +24,14 @@ export async function POST(req: Request) {
     const title = await page.title();
     console.log(`Page title: ${title}`);
 
-    // Save page source
+    // // Save page source
     const pageContent = await page.content();
     await writeFile('page_source.html', pageContent, 'utf-8');
     console.log('Saved page source');
 
-    // Take screenshot
-    await page.screenshot({ path: 'page.png' });
-    console.log('Saved screenshot');
+    // // Take screenshot
+    // await page.screenshot({ path: 'page.png' });
+    // console.log('Saved screenshot');
 
     // Extract content
     const selectors = [

@@ -8,8 +8,8 @@ Your scoring should follow these guidelines:
 - Years of experience match: +15 points
 - Education requirements match: +10 points
 - Industry experience match: +10 points
-- Missing critical skills: -5 points each
-- Insufficient experience: -10 points
+- Missing critical skills: -10 points each
+- Insufficient experience: -15 points
 - The final score can exceed 85 if qualifications are strong
 - A score above 60 generally requires meeting most critical requirements
 - Be fair and balanced in your assessment
@@ -24,13 +24,18 @@ Your analysis should include:
 `;
 
 const emailGuidelines = `
-The generated email should:
-- Acknowledge any significant gaps in a constructive manner
-- Focus on relevant experience and potential
-- Avoid overselling or exaggerating capabilities
-- Include specific examples of relevant projects or achievements
-- Keep the length between 200-300 words
+The generated email (from candidate to HR) must:
+- Be written from the candidate's perspective
+- Highlight the candidate's most relevant experience for the role
+- Reference specific projects that demonstrate required skills
+- Address any potential concerns proactively
+- Show enthusiasm for the role and company
+- Maintain professional tone while being personable
+- Range between 200-250 words
+- Include a clear value proposition
+- End with a strong call to action
 `;
+
 
 export const chatPrompt = ChatPromptTemplate.fromMessages([
   [

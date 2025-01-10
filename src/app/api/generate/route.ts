@@ -8,9 +8,9 @@ const generator = new DataGeneratorService(process.env.OPENAI_API_KEY!);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { format, rows, description, schema, export: shouldExport } = body;
+    const { format, rows, description, schema, export: shouldExport, userId } = body;
 
-    if (!format || !description || !rows) {
+    if (!format || !description || !rows || !userId) {
       return Response.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -26,12 +26,13 @@ export async function POST(request: NextRequest) {
       rows,
       description,
       schema,
+      userId // Pass userId for cache isolation
     }, clearCache);
 
     // For direct download (when export button is clicked)
     if (shouldExport) {
-      // Clear the cache after export
-      generator.clearCache();
+      // Clear the user-specific cache after export
+      generator.clearCache(userId);
 
       return new Response(result.data, {
         headers: {

@@ -1,9 +1,15 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate } from "@langchain/core/prompts";
+import { 
+  ChatPromptTemplate, 
+  SystemMessagePromptTemplate, 
+  HumanMessagePromptTemplate 
+} from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
+import pLimit from 'p-limit';
 
+// Types and interfaces
 export type DataFormat = 'json' | 'csv' | 'xlsx';
 
 export interface GenerateDataParams {
@@ -11,6 +17,7 @@ export interface GenerateDataParams {
   rows: number;
   description: string;
   schema?: Record<string, string>;
+  userId?: string;
 }
 
 export interface GeneratedData {
@@ -19,51 +26,74 @@ export interface GeneratedData {
   filename: string;
 }
 
-export class DataGeneratorService {
-  private model: ChatOpenAI;
-  private readonly CHUNK_SIZE = 20;
-  private cachedData: any[] | null = null; // Cache for generated data
-  private headers: string[] | null = null; // Memory for headers
-  private schema: Record<string, string> | null = null; // Memory for schema
+interface ChunkGenerationResult {
+  data: any[];
+  tokenCount: number;
+}
 
-  constructor(apiKey: string) {
+// Custom error class for data generation errors
+class DataGenerationError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly details?: any
+  ) {
+    super(message);
+    this.name = 'DataGenerationError';
+  }
+}
+
+export class DataGeneratorService {
+  private readonly model: ChatOpenAI;
+  private readonly CHUNK_SIZE: number;
+  private readonly CONCURRENCY_LIMIT: number;
+  private readonly cache: Map<string, any[]>;
+  private readonly headers: Map<string, string[]>;
+  private readonly schema: Map<string, Record<string, string>>;
+
+  constructor(
+    apiKey: string,
+    options: {
+      chunkSize?: number;
+      concurrencyLimit?: number;
+      modelName?: string;
+      temperature?: number;
+    } = {}
+  ) {
+    if (!apiKey) {
+      throw new DataGenerationError(
+        'OpenAI API key is required',
+        'MISSING_API_KEY'
+      );
+    }
+
+    this.CHUNK_SIZE = options.chunkSize || 20;
+    this.CONCURRENCY_LIMIT = options.concurrencyLimit || 10;
+    this.cache = new Map();
+    this.headers = new Map();
+    this.schema = new Map();
+
     this.model = new ChatOpenAI({
-      modelName: "gpt-4-turbo",
-      temperature: 0.7,
+      modelName: options.modelName || "gpt-3.5-turbo",
+      temperature: options.temperature ?? 0.7,
       openAIApiKey: apiKey,
     });
   }
 
-  private createPrompt(params: GenerateDataParams, startIndex: number, chunkSize: number): ChatPromptTemplate {
-    const systemTemplate = `You are a precise data generator that ONLY outputs data in the exact format requested.
-    Role: Generate synthetic data
-    Output Format: ${params.format.toUpperCase()}
-    Required: ONLY output the data, no explanations or text
-    Must: Follow exact format rules with no deviations`;
-
-    const humanTemplate = `Format: ${params.format.toUpperCase()}
-    Rows to generate: ${chunkSize}
-    Starting at index: ${startIndex}
-
-    ${params.format === 'csv' ? `OUTPUT FORMAT MUST BE EXACTLY:
-    ${this.headers ? this.headers.join(',') : 'field1,field2,field3'}
-    value1,value2,value3
-    value4,value5,value6
-
-    REQUIRED CSV RULES:
-    1. First row must be headers
-    2. Use comma (,) as separator
-    3. One record per line
-    4. No empty lines
-    5. No extra commas
-    6. Ensure all rows have the same number of columns as the headers` : ''}
-
-    Data requirements:
-    ${params.description}
-    ${this.schema ? `Schema: ${JSON.stringify(this.schema, null, 2)}` : ''}
-
-    Remember: Output ONLY the data with NO explanations or additional text.
-    Must be parseable ${params.format.toUpperCase()} format.`;
+  private createPrompt(
+    params: GenerateDataParams, 
+    startIndex: number, 
+    chunkSize: number
+  ): ChatPromptTemplate {
+    const systemTemplate = `You are a precise data generator that ONLY outputs data in the exact format requested. 
+    Ensure all generated data follows the specified schema and format exactly.`;
+    
+    const humanTemplate = `Generate ${chunkSize} rows of data starting at index ${startIndex}. 
+    Format: ${params.format}
+    Description: ${params.description}
+    Schema: ${JSON.stringify(this.schema.get(params.userId || 'default'))}
+    
+    Important: Return ONLY the data in the specified format with no additional text or markdown.`;
 
     return ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(systemTemplate),
@@ -71,177 +101,209 @@ export class DataGeneratorService {
     ]);
   }
 
-  private cleanJsonOutput(text: string): string {
-    try {
-      let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
-      const arrayMatch = cleaned.match(/\[\s*{[\s\S]*}\s*\]/);
-      if (!arrayMatch) {
-        throw new Error('No valid JSON array found');
+  private cleanOutput(text: string, format: DataFormat): string {
+    const cleaned = text
+      .replace(/```(?:json|csv)?\s*/g, '')
+      .replace(/```\s*$/g, '')
+      .trim();
+
+    if (format === 'json') {
+      try {
+        return JSON.stringify(JSON.parse(cleaned));
+      } catch (error) {
+        throw new DataGenerationError(
+          'Invalid JSON output from model',
+          'INVALID_JSON_OUTPUT',
+          { rawOutput: cleaned }
+        );
       }
-      cleaned = arrayMatch[0];
-      const parsed = JSON.parse(cleaned);
-      if (!Array.isArray(parsed)) {
-        throw new Error('Output is not a JSON array');
-      }
-      return JSON.stringify(parsed);
-    } catch (error) {
-      console.error('JSON cleaning error:', { original: text, error });
-      throw new Error(`Invalid JSON structure: ${error.message}`);
     }
+    return cleaned;
   }
 
-  private cleanCsvOutput(text: string): string {
+  private async generateChunk(
+    params: GenerateDataParams,
+    startIndex: number,
+    chunkSize: number
+  ): Promise<ChunkGenerationResult> {
     try {
-      // Remove any code block markers (e.g., ```csv```)
-      const cleaned = text.replace(/```csv\s*/g, '').replace(/```\s*$/g, '').trim();
-  
-      // Split into lines and remove empty lines
-      const lines = cleaned.split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
-  
-      if (lines.length < 2) {
-        throw new Error('CSV must have headers and at least one data row');
-      }
-  
-      // Extract headers
-      const headers = lines[0].split(',').map(header => header.trim());
-  
-      // Store headers in memory if not already set
-      if (!this.headers) {
-        this.headers = headers;
-      }
-  
-      // Process data rows
-      const dataRows = lines.slice(1).map(line => {
-        // Handle quoted fields properly
-        const regex = /(".*?"|[^",]+)(?=\s*,|\s*$)/g;
-        const values = [];
-        let match;
-  
-        while ((match = regex.exec(line)) !== null) {
-          values.push(match[0].trim());
-        }
-  
-        // Ensure the row has the same number of columns as the headers
-        if (values.length !== headers.length) {
-          // If not, pad with empty values or truncate
-          return headers.map((_, index) => values[index] || '').join(',');
-        }
-  
-        return values.join(',');
+      const prompt = this.createPrompt(params, startIndex, chunkSize);
+      const chain = prompt.pipe(this.model).pipe(new StringOutputParser());
+      const rawOutput = await chain.invoke({
+        format: params.format,
+        description: params.description
       });
-  
-      // Rebuild the CSV
-      return [headers.join(','), ...dataRows].join('\n');
+
+      const cleanedOutput = this.cleanOutput(rawOutput, params.format);
+      const tokenCount = rawOutput.split(' ').length;
+
+      if (params.format === 'json') {
+        return {
+          data: JSON.parse(cleanedOutput),
+          tokenCount
+        };
+      } else {
+        const result = Papa.parse(cleanedOutput, { header: true });
+        if (result.errors.length > 0) {
+          throw new DataGenerationError(
+            'CSV parsing error',
+            'CSV_PARSE_ERROR',
+            result.errors
+          );
+        }
+        return {
+          data: result.data,
+          tokenCount
+        };
+      }
     } catch (error) {
-      console.error('CSV cleaning error:', { original: text, error });
-      throw new Error(`Invalid CSV structure: ${error.message}`);
+      if (error instanceof DataGenerationError) throw error;
+      throw new DataGenerationError(
+        'Chunk generation failed',
+        'CHUNK_GENERATION_ERROR',
+        error
+      );
     }
   }
 
-  private async generateChunk(params: GenerateDataParams, startIndex: number, chunkSize: number): Promise<any[]> {
-    const prompt = this.createPrompt(params, startIndex, chunkSize);
-    const chain = prompt.pipe(this.model).pipe(new StringOutputParser());
-
-    const rawOutput = await chain.invoke({
-      format: params.format,
-      description: params.description,
-    });
-
-    console.log('Raw output:', rawOutput);
-
-    if (params.format === 'json') {
-      const cleanJson = this.cleanJsonOutput(rawOutput);
-      return JSON.parse(cleanJson);
-    } else {
-      const cleanCsv = this.cleanCsvOutput(rawOutput);
-      const result = Papa.parse(cleanCsv, { header: true });
-      if (result.errors.length > 0) {
-        throw new Error(`CSV parsing error: ${result.errors[0].message}`);
+  private async generateChunkWithRetry(
+    params: GenerateDataParams,
+    startIndex: number,
+    chunkSize: number,
+    retries = 3
+  ): Promise<any[]> {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const result = await this.generateChunk(params, startIndex, chunkSize);
+        return result.data;
+      } catch (error) {
+        const isRateLimit = error.response?.status === 429;
+        const canRetry = attempt < retries;
+        
+        if (isRateLimit && canRetry) {
+          const delay = Math.pow(2, attempt) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        throw error;
       }
-      return result.data;
     }
+    throw new DataGenerationError(
+      'Max retries exceeded',
+      'MAX_RETRIES_EXCEEDED'
+    );
   }
 
   private async generateAllData(params: GenerateDataParams): Promise<any[]> {
-    const allData: any[] = [];
-    const numChunks = Math.ceil(params.rows / this.CHUNK_SIZE);
+    this.validateParams(params);
 
-    // Store schema in memory if provided
-    if (params.schema && !this.schema) {
-      this.schema = params.schema;
+    const numChunks = Math.ceil(params.rows / this.CHUNK_SIZE);
+    const limit = pLimit(this.CONCURRENCY_LIMIT);
+    const allData: any[] = [];
+
+    if (params.schema) {
+      this.schema.set(params.userId || 'default', params.schema);
     }
 
-    for (let i = 0; i < numChunks; i++) {
+    const chunkPromises = Array.from({ length: numChunks }, (_, i) => {
       const startIndex = i * this.CHUNK_SIZE;
       const remainingRows = params.rows - startIndex;
       const currentChunkSize = Math.min(this.CHUNK_SIZE, remainingRows);
 
-      console.log(`Generating chunk ${i + 1}/${numChunks} (${currentChunkSize} rows)`);
-      const chunkData = await this.generateChunk(params, startIndex, currentChunkSize);
-      allData.push(...chunkData);
-    }
+      return limit(() => this.generateChunkWithRetry(
+        params,
+        startIndex,
+        currentChunkSize
+      ));
+    });
 
-    return allData;
+    try {
+      const chunkResults = await Promise.all(chunkPromises);
+      chunkResults.forEach(chunkData => allData.push(...chunkData));
+      return allData;
+    } catch (error) {
+      throw new DataGenerationError(
+        'Failed to generate all data chunks',
+        'BULK_GENERATION_ERROR',
+        error
+      );
+    }
   }
 
-  public async generateData(params: GenerateDataParams, clearCache: boolean = false): Promise<GeneratedData> {
+  private validateParams(params: GenerateDataParams): void {
+    if (params.rows <= 0) {
+      throw new DataGenerationError(
+        'Number of rows must be positive',
+        'INVALID_ROW_COUNT'
+      );
+    }
+    if (!params.description?.trim()) {
+      throw new DataGenerationError(
+        'Description is required',
+        'MISSING_DESCRIPTION'
+      );
+    }
+  }
+
+  public async generateData(
+    params: GenerateDataParams,
+    clearCache: boolean = false
+  ): Promise<GeneratedData> {
+    const cacheKey = params.userId || 'default';
+
+    if (clearCache) {
+      this.clearCache(cacheKey);
+    }
+
     try {
-      // Clear the cache if requested
-      if (clearCache) {
-        this.clearCache();
+      if (!this.cache.get(cacheKey)) {
+        this.cache.set(cacheKey, await this.generateAllData(params));
       }
 
-      // Generate data only if it hasn't been cached
-      if (!this.cachedData) {
-        this.cachedData = await this.generateAllData(params);
-      }
-
-      // Return data in the requested format
+      const cachedData = this.cache.get(cacheKey);
+      
       switch (params.format) {
-        case 'json': {
+        case 'json':
           return {
-            data: JSON.stringify(this.cachedData, null, 2),
+            data: JSON.stringify(cachedData, null, 2),
             contentType: 'application/json',
             filename: 'generated-data.json',
           };
-        }
-
-        case 'csv': {
-          const csv = Papa.unparse(this.cachedData);
+        case 'csv':
           return {
-            data: csv,
+            data: Papa.unparse(cachedData),
             contentType: 'text/csv',
             filename: 'generated-data.csv',
           };
-        }
-
         case 'xlsx': {
-          const worksheet = XLSX.utils.json_to_sheet(this.cachedData);
+          const worksheet = XLSX.utils.json_to_sheet(cachedData);
           const workbook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-
           return {
             data: XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
             contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             filename: 'generated-data.xlsx',
           };
         }
-
         default:
-          throw new Error(`Unsupported format: ${params.format}`);
+          throw new DataGenerationError(
+            `Unsupported format: ${params.format}`,
+            'UNSUPPORTED_FORMAT'
+          );
       }
     } catch (error) {
-      console.error('Generation error:', error);
-      throw new Error(`Data generation failed: ${error.message}`);
+      if (error instanceof DataGenerationError) throw error;
+      throw new DataGenerationError(
+        'Data generation failed',
+        'GENERATION_ERROR',
+        error
+      );
     }
   }
 
-  // Clear the cache and memory
-  public clearCache(): void {
-    this.cachedData = null;
-    this.headers = null;
-    this.schema = null;
+  public clearCache(userId: string = 'default'): void {
+    this.cache.delete(userId);
+    this.headers.delete(userId);
+    this.schema.delete(userId);
   }
 }
