@@ -1,4 +1,3 @@
-// app/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -23,19 +22,28 @@ import {
 import { FileDown } from 'lucide-react';
 import { CategorySelect } from '@/components/CategorySelect';
 import { Header } from '@/components/Header';
+import { useSession } from "next-auth/react";
 
 export default function DataGeneratorPage() {
+  const { data: session } = useSession();
   const [formData, setFormData] = useState({
     description: '',
     rows: 100,
-    format: 'csv'
+    format: 'csv',
+    userId: session?.user?.id || '',
   });
-
   const [generatedData, setGeneratedData] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [headers, setHeaders] = useState<string[]>([]);
 
+  if (!session) return null;
+
   const handleGenerate = async () => {
+    if (isNaN(formData.rows) || formData.rows < 1) {
+      console.error('Invalid number of rows');
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await fetch('/api/generate', {
@@ -45,7 +53,7 @@ export default function DataGeneratorPage() {
         },
         body: JSON.stringify({
           ...formData,
-          export: false
+          export: false,
         }),
       });
 
@@ -69,6 +77,11 @@ export default function DataGeneratorPage() {
   };
 
   const handleExport = async () => {
+    if (isNaN(formData.rows) || formData.rows < 1) {
+      console.error('Invalid number of rows');
+      return;
+    }
+
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -77,11 +90,13 @@ export default function DataGeneratorPage() {
         },
         body: JSON.stringify({
           ...formData,
-          export: true
+          export: true,
         }),
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Export failed:', errorData);
         throw new Error('Export failed');
       }
 
@@ -148,7 +163,10 @@ export default function DataGeneratorPage() {
                 min="1"
                 max="1000"
                 value={formData.rows}
-                onChange={(e) => setFormData({ ...formData, rows: parseInt(e.target.value) })}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value, 10);
+                  setFormData({ ...formData, rows: isNaN(value) ? 1 : value });
+                }}
               />
             </div>
 
@@ -164,7 +182,6 @@ export default function DataGeneratorPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="csv">CSV</SelectItem>
-
                 </SelectContent>
               </Select>
             </div>

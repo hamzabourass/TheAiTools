@@ -41,6 +41,7 @@
     "next-auth": "^4.24.11",
     "nodemailer": "^6.9.16",
     "openai": "^4.77.3",
+    "p-limit": "^6.2.0",
     "papaparse": "^5.5.0",
     "patch-package": "^8.0.0",
     "pdf2json": "^3.1.5",
@@ -60,6 +61,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
+    "@types/papaparse": "^5.3.15",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
