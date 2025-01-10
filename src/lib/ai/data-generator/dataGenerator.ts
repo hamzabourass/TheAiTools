@@ -28,7 +28,7 @@ export class DataGeneratorService {
 
   constructor(apiKey: string) {
     this.model = new ChatOpenAI({
-      modelName: "gpt-4-turbo",
+      modelName: "gpt-3.5-turbo",
       temperature: 0.7,
       openAIApiKey: apiKey,
     });
