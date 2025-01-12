@@ -179,11 +179,9 @@ export const CVAnalyzerSection = () => {
           </CardContent>
           <CardFooter className="flex gap-4">
             <Button className="flex-1" asChild>
-              <Link href="/resume-analyzer">Start Analysis</Link>
+              <Link href="/tools/resume-analyzer">Start Analysis</Link>
             </Button>
-            <Button variant="outline" className="flex-1" asChild>
-              <Link href="/tools/guide">View Guide</Link>
-            </Button>
+       
           </CardFooter>
         </Card>
 

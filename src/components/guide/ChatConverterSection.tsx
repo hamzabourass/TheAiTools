@@ -104,7 +104,7 @@ export  function ChatConverterSection() {
               <p className="text-muted-foreground">Choose your preferred document format</p>
             </div>
             <Button asChild>
-              <Link href="/chat-converter">Start Converting</Link>
+              <Link href="/tools/chat-converter">Start Converting</Link>
             </Button>
           </div>
 

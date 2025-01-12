@@ -282,10 +282,10 @@ const CTASection = () => (
         variants={fadeInUp}
       >
         <Button size="lg" variant="secondary" asChild>
-          <Link href="/resume-analyzer">Try Resume Analyzer</Link>
+          <Link href="/tools/resume-analyzer">Try Resume Analyzer</Link>
         </Button>
         <Button size="lg" variant="outline" className="bg-transparent" asChild>
-          <Link href="/chat-converter">Try Chat Converter</Link>
+          <Link href="/tools/chat-converter">Try Chat Converter</Link>
         </Button>
       </motion.div>
     </div>
@@ -437,10 +437,10 @@ export default function LandingPage() {
             variants={fadeInUp}
           >
             <Button asChild size="lg">
-              <Link href="/resume-analyzer">Get Started</Link>
+              <Link href="/tools/resume-analyzer">Get Started</Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link href="/chat-converter">Try Chat Converter</Link>
+              <Link href="/tools/chat-converter">Try Chat Converter</Link>
             </Button>
           </motion.div>
         </motion.section>
@@ -474,7 +474,7 @@ export default function LandingPage() {
                 "Automated professional report generation",
                 "Customizable email templates"
               ]}
-              linkHref="/resume-analyzer"
+              linkHref="/tools/resume-analyzer"
               linkText="Analyze Resume"
             />
             <FeatureCard 
@@ -487,7 +487,7 @@ export default function LandingPage() {
                 "Q&A organization and categorization",
                 "Professional PDF generation"
               ]}
-              linkHref="/chat-converter"
+              linkHref="/tools/chat-converter"
               linkText="Convert Chat"
             />
           </motion.div>

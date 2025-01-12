@@ -34,19 +34,19 @@ const navItems = [
 
 const toolsList = [
   {
-    href: "/resume-analyzer",
+    href: "/tools/resume-analyzer",
     icon: <FileText className="h-5 w-5 text-primary" />,
     title: "Resume Analyzer",
     description: "AI-powered resume analysis"
   },
   {
-    href: "/chat-converter",
+    href: "/tools/chat-converter",
     icon: <MessageSquare className="h-5 w-5 text-primary" />,
     title: "Chat Converter",
     description: "Convert chats to PDFs"
   },
   {
-    href: "/generate-data",
+    href: "/tools/generate-data",
     icon: <Database className="h-5 w-5 text-primary" />,
     title: "Data Generator",
     description: "Generate synthetic data"
@@ -134,12 +134,12 @@ const Navbar = () => {
                     <h3 className="text-sm font-medium text-muted-foreground">Actions</h3>
                     <div className="grid gap-2">
                       <Button variant="outline" asChild>
-                        <Link href="/resume-analyzer">
+                        <Link href="/tools/resume-analyzer">
                           Try Resume Analyzer
                         </Link>
                       </Button>
                       <Button asChild>
-                        <Link href="/chat-converter">
+                        <Link href="/tools/chat-converter">
                           Convert Chat
                         </Link>
                       </Button>
@@ -211,7 +211,7 @@ const Navbar = () => {
               <Link href="/tools/guide">View Guide</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/resume-analyzer">Try Tools</Link>
+              <Link href="/tools/resume-analyzer">Try Tools</Link>
             </Button>
           </div>
         </div>
