@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // For direct download (when export button is clicked)
     if (shouldExport) {
 
-      generator.clearCache(userId);
+      //generator.clearCache(userId);
 
       return new Response(result.data, {
         headers: {
