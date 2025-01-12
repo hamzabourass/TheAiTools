@@ -49,6 +49,7 @@ model Cv {
   id        String   @id @default(cuid())
   filename  String
   fileUrl   String
+  key       String   // Add this field for S3 key
   analysis  String?
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
