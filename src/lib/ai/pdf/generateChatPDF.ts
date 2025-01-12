@@ -104,7 +104,7 @@ async function generateTitle(content: string) {
 async function analyzeChat(messages: Message[], analysisType: string) {
   try {
     const model = new ChatOpenAI({
-      modelName: "gpt-3.5-turbo",
+      modelName: "gpt-4-turbo",
       temperature: 0.7,
       openAIApiKey: process.env.OPENAI_API_KEY
     });

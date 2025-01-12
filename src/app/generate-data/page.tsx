@@ -24,6 +24,7 @@ import { CategorySelect } from '@/components/CategorySelect';
 import { Header } from '@/components/Header';
 import { useSession } from "next-auth/react";
 import { redirect } from 'next/navigation';
+import { Progress } from "@/components/ui/progress" // Add this import
 
 export default function DataGeneratorPage() {
   const { data: session } = useSession();
@@ -37,7 +38,7 @@ export default function DataGeneratorPage() {
   const [generatedData, setGeneratedData] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [headers, setHeaders] = useState<string[]>([]);
-
+  const [progress, setProgress] = useState(0);
   if (!session) redirect('/signin');
 
   const handleGenerate = async () => {
@@ -47,7 +48,20 @@ export default function DataGeneratorPage() {
     }
 
     setIsLoading(true);
+    setProgress(0);
+    
     try {
+      // Simulate progress while generating
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 500);
+
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -59,6 +73,8 @@ export default function DataGeneratorPage() {
         }),
       });
 
+      clearInterval(progressInterval);
+
       if (!response.ok) {
         throw new Error('Generation failed');
       }
@@ -69,10 +85,12 @@ export default function DataGeneratorPage() {
         return;
       }
 
+      setProgress(100);
       setGeneratedData(data.previewData);
       setHeaders(data.headers);
     } catch (error) {
       console.error('Generation failed:', error);
+      setProgress(0);
     } finally {
       setIsLoading(false);
     }
@@ -197,7 +215,20 @@ export default function DataGeneratorPage() {
           >
             {isLoading ? 'Generating...' : 'Generate Data'}
           </Button>
+
+          {isLoading && (
+              <div className="space-y-2 mt-2">
+                <Progress value={progress} className="w-full" />
+                <p className="text-center text-sm text-muted-foreground">
+                  {progress < 100 
+                    ? `Generating your data please don't quit the page... ${progress}%`
+                    : 'Almost done! Processing results...'}
+                </p>
+              </div>
+            )}
         </div>
+
+
 
         {/* Results Table */}
         {generatedData && generatedData.length > 0 && (

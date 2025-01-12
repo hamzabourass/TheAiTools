@@ -46,7 +46,7 @@ const toolsList = [
     description: "Convert chats to PDFs"
   },
   {
-    href: "/data-generator",
+    href: "/generate-data",
     icon: <Database className="h-5 w-5 text-primary" />,
     title: "Data Generator",
     description: "Generate synthetic data"
