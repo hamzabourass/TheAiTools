@@ -1,4 +1,3 @@
-// app/api/extract/route.ts
 import puppeteer from 'puppeteer';
 import { NextResponse } from 'next/server';
 
@@ -11,7 +10,7 @@ export async function POST(req: Request) {
 
     // Launch browser with specific options
     browser = await puppeteer.launch({
-      headless: false, // Use new headless mode
+      headless: false,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -34,7 +33,6 @@ export async function POST(req: Request) {
 
     const title = await page.title();
 
-    // Extract content with improved error handling
     const selectors = [
       'div.message-content',
       'div.markdown',
@@ -62,11 +60,10 @@ export async function POST(req: Request) {
         }
       } catch (selectorError) {
         console.warn(`Error processing selector ${selector}:`, selectorError.message);
-        continue; // Continue with next selector
+        continue;
       }
     }
 
-    // Return response with metadata
     return NextResponse.json({
       success: true,
       messages,

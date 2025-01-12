@@ -20,18 +20,17 @@ export async function POST(request: NextRequest) {
     // Clear the cache if this is a new request (not an export)
     const clearCache = !shouldExport;
 
-    // Generate data (clearing cache if needed)
     const result = await generator.generateData({
       format,
       rows,
       description,
       schema,
-      userId // Pass userId for cache isolation
+      userId
     }, clearCache);
 
     // For direct download (when export button is clicked)
     if (shouldExport) {
-      // Clear the user-specific cache after export
+
       generator.clearCache(userId);
 
       return new Response(result.data, {
