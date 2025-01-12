@@ -79,7 +79,7 @@ export function Header() {
       <NavigationMenu className="hidden lg:flex justify-center">
         <NavigationMenuList>
           <NavigationMenuItem>
-            <Link href="/resume-analyzer" legacyBehavior passHref>
+            <Link href="/tools/resume-analyzer" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 <FileText className="w-4 h-4 mr-2" />
                 Resume Analyzer
@@ -87,7 +87,7 @@ export function Header() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/chat-converter" legacyBehavior passHref>
+            <Link href="/tools/chat-converter" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Chat Converter
@@ -95,7 +95,7 @@ export function Header() {
             </Link>
           </NavigationMenuItem>
           <NavigationMenuItem>
-            <Link href="/generate-data" legacyBehavior passHref>
+            <Link href="/tools/generate-data" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 <DatabaseIcon className="w-4 h-4 mr-2" />
                 Generate Data
