@@ -28,6 +28,7 @@ export const authOptions: NextAuthOptions = {
         return {
           ...token,
           accessToken: account.access_token,
+          refreshToken: account.refresh_token, // Include the refresh token
           id: user.id,
         }
       }
@@ -37,6 +38,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string
         session.accessToken = token.accessToken as string
+        session.refreshToken = token.refreshToken as string // Include the refresh token in the session
       }
       return session
     }

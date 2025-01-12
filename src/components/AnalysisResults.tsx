@@ -1,5 +1,3 @@
-"use client"
-
 import { AlertCircle, Loader2, Mail } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -8,12 +6,12 @@ import { AnalysisChart } from "./AnalysisChart"
 import { ExpandableSkills } from "./ExpandableSkills"
 import { AnalysisResult } from "@/types/types"
 
-
 type AnalysisResultsProps = {
   analysis: AnalysisResult;
   recipientEmail: string;
-  onSendEmail: (emailData: { to: string; subject: string; message: string }) => void;
+  onSendEmail: (emailData: { to: string; subject: string; message: string }, cvFile?: File) => void;
 }
+
 export function AnalysisResults({ 
   analysis, 
   recipientEmail,
@@ -145,8 +143,9 @@ export function AnalysisResults({
                 emailSubject={analysis.generatedEmail.subject}
                 emailBody={analysis.generatedEmail.body}
                 onSend={onSendEmail}
+                cvFile={analysis.cv} // Pass the CV file to EmailDialog
                 trigger={
-                  <Button className="w-full mt-4" >
+                  <Button className="w-full mt-4">
                     <Mail className="w-4 h-4 mr-2" />
                     Send Email
                   </Button>

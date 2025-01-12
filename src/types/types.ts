@@ -21,6 +21,7 @@ export type AnalysisResult = {
     subject: string;
     body: string;
   };
+  cv: File | null;
   status: 'idle' | 'analyzing' | 'complete' | 'error';
 }
 
