@@ -1,6 +1,6 @@
 "use client"
 
-import { signIn, signOut, useSession } from "next-auth/react"
+import { signIn,useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
 import { Loader2 } from "lucide-react"
@@ -28,7 +28,7 @@ export function SignInButton() {
 
   return (
     <Button
-      onClick={() => signIn("google", { callbackUrl: "/resume-analyzer" })}
+      onClick={() => signIn("google", { callbackUrl: "/tools/resume-analyzer" })}
       variant="outline"
       size="lg"
       className="w-full max-w-xs flex items-center gap-2 shadow-sm hover:shadow transition-all"

@@ -2,6 +2,7 @@
 
 import { SignInButton } from "@/components/auth/signin-button"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 
 export default function Signin() {
@@ -112,13 +113,13 @@ export default function Signin() {
             
             <p className="text-center text-sm text-muted-foreground">
               By continuing, you agree to our{" "}
-              <a href="#" className="text-primary hover:text-primary/80 transition-colors">
+              <Link href="/terms" className="text-primary hover:text-primary/80 transition-colors">
                 Terms
-              </a>{" "}
+              </Link>{" "}
               and{" "}
-              <a href="#" className="text-primary hover:text-primary/80 transition-colors">
+              <Link href="/privacy" className="text-primary hover:text-primary/80 transition-colors">
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           </motion.div>
         </motion.div>

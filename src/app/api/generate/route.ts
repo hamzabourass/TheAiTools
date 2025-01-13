@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server';
 import { DataGeneratorService } from '@/lib/ai/data-generator/dataGenerator';
 import Papa from 'papaparse';
 
-// Create a single instance of the service (to maintain cache)
 const generator = new DataGeneratorService(process.env.OPENAI_API_KEY!);
 
 export async function POST(request: NextRequest) {
@@ -17,7 +16,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Clear the cache if this is a new request (not an export)
     const clearCache = !shouldExport;
 
     const result = await generator.generateData({
@@ -28,7 +26,6 @@ export async function POST(request: NextRequest) {
       userId
     }, clearCache);
 
-    // For direct download (when export button is clicked)
     if (shouldExport) {
 
       //generator.clearCache(userId);
@@ -41,7 +38,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // For preview data
     let previewData = [];
     let headers = [];
 
@@ -56,13 +52,11 @@ export async function POST(request: NextRequest) {
       previewData = parsedCsv.data;
       headers = parsedCsv.meta.fields || [];
     } else if (format === 'xlsx') {
-      // For XLSX, convert the Buffer to JSON first
       const jsonStr = result.data.toString();
       try {
         previewData = JSON.parse(jsonStr);
         headers = Object.keys(previewData[0] || {});
       } catch {
-        // If parsing fails, return empty preview
         previewData = [];
         headers = [];
       }
