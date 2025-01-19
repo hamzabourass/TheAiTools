@@ -16,6 +16,7 @@
     "@aws-amplify/ui-react": "^6.8.1",
     "@aws-sdk/client-s3": "^3.731.1",
     "@aws-sdk/s3-presigned-post": "^3.731.1",
+    "@aws-sdk/s3-request-presigner": "^3.731.1",
     "@hookform/resolvers": "^3.9.1",
     "@langchain/core": "^0.3.27",
     "@langchain/openai": "^0.3.16",

@@ -1,8 +1,17 @@
 import { generateChatPDF } from '@/lib/ai/pdf/generateChatPDF';
+import { authOptions } from '@/lib/auth/auth';
+import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+
+     const session = await getServerSession(authOptions)
+        
+        if (!session?.accessToken) {
+          return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+        }
+    
     if (!process.env.OPENAI_API_KEY) {
       throw new Error("OPENAI_API_KEY is not set in environment variables");
     }

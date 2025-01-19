@@ -5,13 +5,11 @@ import { Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function CVUpload({ onUploadComplete }) {
   const [uploading, setUploading] = React.useState(false);
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const { toast } = useToast();
-  const [error, setError] = React.useState(null);
 
   const handleFileUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -28,70 +26,61 @@ export function CVUpload({ onUploadComplete }) {
       return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: "File too large",
-        description: "Please upload a file smaller than 10MB"
-      });
-      return;
-    }
-
     setUploading(true);
-    setError(null);
     setUploadProgress(0);
 
     try {
       // Get presigned URL
       const urlResponse = await fetch('/api/upload-url');
-      if (!urlResponse.ok) throw new Error('Failed to get upload URL');
-      const { url, fields } = await urlResponse.json();
+      if (!urlResponse.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+      const { url, fields, key } = await urlResponse.json();
 
-      // Prepare form data
+      // Create form data
       const formData = new FormData();
-      Object.entries(fields).forEach(([key, value]) => {
-        formData.append(key, value);
+      
+      // Add all fields from the presigned URL first
+      Object.entries(fields).forEach(([fieldName, fieldValue]) => {
+        formData.append(fieldName, fieldValue as string);
       });
+      
+      // Add the file last
       formData.append('file', file);
 
-      // Upload to S3 with progress tracking
-      const xhr = new XMLHttpRequest();
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const progress = (event.loaded / event.total) * 100;
-          setUploadProgress(progress);
-        }
-      };
-
-      await new Promise((resolve, reject) => {
-        xhr.open('POST', url, true);
-        xhr.onload = () => {
-          if (xhr.status === 204) {
-            resolve();
-          } else {
-            reject(new Error('Upload failed'));
-          }
-        };
-        xhr.onerror = () => reject(new Error('Upload failed'));
-        xhr.send(formData);
+      // Upload to S3
+      const uploadResponse = await fetch(url, {
+        method: 'POST',
+        body: formData
       });
 
-      // Save CV record
-      const fileUrl = `${url}/${fields.key}`;
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        console.error('S3 Error Response:', errorText);
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
+
+      // Construct the final URL - you might need to adjust this based on your bucket configuration
+      const fileUrl = `${url}/${key}`;
+
+      // Save record in our database
       const cvResponse = await fetch('/api/cvs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           filename: file.name,
           fileUrl,
-          key: fields.key,
+          key,
           contentType: file.type,
-          size: file.size
+          size: file.size,
         }),
       });
 
-      if (!cvResponse.ok) throw new Error('Failed to save CV');
+      if (!cvResponse.ok) {
+        throw new Error('Failed to save CV record');
+      }
 
       toast({
         title: "Success",
@@ -99,12 +88,13 @@ export function CVUpload({ onUploadComplete }) {
       });
 
       onUploadComplete?.();
-    } catch (err) {
-      setError('Failed to upload CV');
+
+    } catch (error) {
+      console.error('Upload error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: err.message || 'Failed to upload CV'
+        description: error.message || 'Failed to upload CV'
       });
     } finally {
       setUploading(false);
@@ -119,7 +109,6 @@ export function CVUpload({ onUploadComplete }) {
           size="lg"
           onClick={() => document.getElementById('cv-upload').click()}
           disabled={uploading}
-          className="relative"
         >
           <Upload className="mr-2 h-4 w-4" />
           {uploading ? 'Uploading...' : 'Upload CV'}
@@ -141,12 +130,6 @@ export function CVUpload({ onUploadComplete }) {
           </div>
           <Progress value={uploadProgress} className="h-2" />
         </div>
-      )}
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
       )}
     </div>
   );

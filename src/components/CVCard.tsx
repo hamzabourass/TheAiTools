@@ -1,6 +1,6 @@
 'use client';
 
-import { Calendar, Clock} from 'lucide-react';
+import { Calendar, Clock, FileText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,40 +10,65 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { formatFileSize, getFileIcon } from '@/lib/utils';
 
 export function CVCard({ cv, onDelete }) {
   const { toast } = useToast();
-  const FileIcon = getFileIcon(cv.filename);
 
   const handleView = async () => {
     try {
-      // Get fresh URL in case it expired
-      const response = await fetch(`/api/cvs/${cv.id}/url`);
-      if (!response.ok) throw new Error('Failed to get URL');
+      const response = await fetch(`/api/cvs/${cv.id}/view`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to get view URL');
+      }
+      
       const { url } = await response.json();
-      window.open(url, '_blank');
+      
+      if (!url) {
+        throw new Error('No URL returned from server');
+      }
+
+      // Open in new tab with noopener for security
+      window.open(url, '_blank', 'noopener');
     } catch (error) {
+      console.error('View error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to view CV"
+        description: error.message || "Failed to view CV"
       });
     }
   };
 
   const handleDelete = async () => {
     try {
-      await onDelete(cv.id);
+      const response = await fetch(`/api/cvs/${cv.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete CV');
+      }
+
+      await onDelete();
+      
       toast({
         title: "Success",
         description: "CV deleted successfully"
       });
     } catch (error) {
+      console.error('Delete error:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete CV"
+        description: error.message || "Failed to delete CV"
       });
     }
   };
@@ -54,7 +79,7 @@ export function CVCard({ cv, onDelete }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-muted rounded-lg">
-              <FileIcon className="h-5 w-5 text-muted-foreground" />
+              <FileText className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <CardTitle className="text-lg font-semibold">{cv.filename}</CardTitle>
@@ -97,11 +122,14 @@ export function CVCard({ cv, onDelete }) {
           </div>
         </CardDescription>
       </CardHeader>
-      {cv.analysis && (
-        <CardContent>
-          <p className="text-sm text-muted-foreground">{cv.analysis}</p>
-        </CardContent>
-      )}
     </Card>
   );
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
