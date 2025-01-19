@@ -7,11 +7,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Header } from '@/components/Header';
 import { CVUpload } from '@/components/CVUpload';
 import { CVCard } from '@/components/CVCard';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CVManagementPage() {
   const [cvs, setCvs] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const { toast } = useToast();
 
   const fetchCVs = async () => {
     try {
@@ -21,6 +23,11 @@ export default function CVManagementPage() {
       setCvs(data);
     } catch (err) {
       setError('Failed to load CVs');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load CVs"
+      });
     } finally {
       setLoading(false);
     }
@@ -32,13 +39,30 @@ export default function CVManagementPage() {
 
   const handleDelete = async (cvId) => {
     try {
+      // Optimistically remove the CV from the UI
+      setCvs((prevCvs) => prevCvs.filter((cv) => cv.id !== cvId));
+
       const response = await fetch(`/api/cvs/${cvId}`, {
         method: 'DELETE',
       });
-      if (!response.ok) throw new Error('Failed to delete CV');
-      fetchCVs();
+
+      if (!response.ok) {
+        // If delete fails, revert the UI and show error
+        fetchCVs(); // Reload the CVs to ensure UI is in sync
+        throw new Error('Failed to delete CV');
+      }
+
+      toast({
+        title: "Success",
+        description: "CV deleted successfully"
+      });
     } catch (err) {
-      throw new Error('Failed to delete CV');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: err.message || "Failed to delete CV"
+      });
+      console.error('Delete error:', err);
     }
   };
 
@@ -91,7 +115,7 @@ export default function CVManagementPage() {
                 <CVCard
                   key={cv.id}
                   cv={cv}
-                  onDelete={handleDelete}
+                  onDelete={() => handleDelete(cv.id)}
                 />
               ))
             )}
