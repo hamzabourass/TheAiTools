@@ -1,11 +1,20 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { DataGeneratorService } from '@/lib/ai/data-generator/dataGenerator';
 import Papa from 'papaparse';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth/auth';
 
 const generator = new DataGeneratorService(process.env.OPENAI_API_KEY!);
 
 export async function POST(request: NextRequest) {
   try {
+
+      const session = await getServerSession(authOptions)
+        
+        if (!session?.accessToken) {
+          return NextResponse.json({ error: "Not authenticated" }, { status: 401 })
+        }
+        
     const body = await request.json();
     const { format, rows, description, schema, export: shouldExport, userId } = body;
 

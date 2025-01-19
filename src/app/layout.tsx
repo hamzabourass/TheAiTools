@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/providers/auth-provider"
 import { authOptions } from "@/lib/auth/auth" 
 import { NotificationProvider } from "@/components/providers/notificationProvider"
 import { Metadata } from "next"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
@@ -22,12 +23,12 @@ export default async function RootLayout({
 
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
         <AuthProvider session={session}>
         <NotificationProvider>
-
           {children}
+          <Toaster />
         </NotificationProvider>
         </AuthProvider>
       </body>
