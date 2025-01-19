@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { PDFViewer } from "./PDFViewer";
+
 
 export function ViewCVDialog({
   isOpen,
@@ -25,7 +26,6 @@ export function ViewCVDialog({
   isLoading: boolean;
 }) {
   const { toast } = useToast();
-  const [iframeError, setIframeError] = useState(false);
 
   // Function to determine if we can preview the file
   const canPreview = (filename: string) => {
@@ -76,76 +76,56 @@ export function ViewCVDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle>{filename}</DialogTitle>
-            <div className="flex items-center gap-2">
-              {url && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  disabled={isLoading}
-                  className="mt-3 mr-2"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download
-                </Button>
-              )}
-            </div>
-          </div>
-        </DialogHeader>
+     <DialogContent className="max-w-4xl h-[80vh] flex flex-col overflow-auto">
+  <DialogHeader className="flex-shrink-0">
+    <div className="flex items-center justify-between">
+      <DialogTitle>{filename}</DialogTitle>
+      <div className="flex items-center gap-2">
+        {url && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            disabled={isLoading}
+            className="mt-3 mr-2"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download
+          </Button>
+        )}
+      </div>
+    </div>
+  </DialogHeader>
 
-        <div className="flex-1 mt-4 relative">
-          {isLoading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : url ? (
-            canPreview(filename) ? (
-              iframeError ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                  <p>Failed to load preview.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleDownload}
-                    className="mt-4"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download to view
-                  </Button>
-                </div>
-              ) : (
-                <iframe
-                  src={url}
-                  className="w-full h-full rounded-md border"
-                  title={`Preview of ${filename}`}
-                  onError={() => setIframeError(true)}
-                />
-              )
-            ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                <p>This file type cannot be previewed.</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownload}
-                  className="mt-4"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download to view
-                </Button>
-              </div>
-            )
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              Failed to load preview
-            </div>
-          )}
+  <div className="flex-1 mt-4 relative">
+    {isLoading ? (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    ) : url ? (
+      canPreview(filename) ? (
+        <PDFViewer url={url} />
+      ) : (
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+          <p>This file type cannot be previewed.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownload}
+            className="mt-4"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Download to view
+          </Button>
         </div>
-      </DialogContent>
+      )
+    ) : (
+      <div className="absolute inset-0 flex items-center justify-center">
+        Failed to load preview
+      </div>
+    )}
+  </div>
+</DialogContent>
     </Dialog>
   );
 }
