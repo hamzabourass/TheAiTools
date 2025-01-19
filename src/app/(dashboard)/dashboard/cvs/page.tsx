@@ -1,3 +1,4 @@
+// app/dashboard/cvs/page.tsx
 'use client';
 
 import React from 'react';
@@ -38,17 +39,18 @@ export default function CVManagementPage() {
   }, []);
 
   const handleDelete = async (cvId) => {
-    try {
-      // Optimistically remove the CV from the UI
-      setCvs((prevCvs) => prevCvs.filter((cv) => cv.id !== cvId));
+    // Optimistically update UI first
+    setCvs((prevCvs) => prevCvs.filter((cv) => cv.id !== cvId));
 
+    try {
       const response = await fetch(`/api/cvs/${cvId}`, {
         method: 'DELETE',
       });
 
-      if (!response.ok) {
-        // If delete fails, revert the UI and show error
-        fetchCVs(); // Reload the CVs to ensure UI is in sync
+      // If it's a 404, the CV is already deleted, so that's fine
+      if (!response.ok && response.status !== 404) {
+        // Revert the optimistic update only if it's not a 404
+        fetchCVs();
         throw new Error('Failed to delete CV');
       }
 
@@ -57,12 +59,14 @@ export default function CVManagementPage() {
         description: "CV deleted successfully"
       });
     } catch (err) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: err.message || "Failed to delete CV"
-      });
-      console.error('Delete error:', err);
+      // Only show error toast if it's not a 404
+      if (err.message !== 'Failed to delete CV') {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to delete CV"
+        });
+      }
     }
   };
 
