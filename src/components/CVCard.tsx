@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Calendar, Clock, FileText, Loader2, ExternalLink, Trash2, MoreHorizontal } from 'lucide-react';
-import { Card,  CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,11 +23,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ViewCVDialog } from '@/components/ViewCvDialog';
 
 export function CVCard({ cv, onDelete }) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [viewUrl, setViewUrl] = useState<string | null>(null);
   const [error, setError] = useState(null);
 
   const handleView = async () => {
@@ -35,6 +38,7 @@ export function CVCard({ cv, onDelete }) {
     
     setIsLoading(true);
     setError(null);
+    setShowViewDialog(true);
 
     try {
       const response = await fetch(`/api/cvs/${cv.id}/view`, {
@@ -55,12 +59,7 @@ export function CVCard({ cv, onDelete }) {
         throw new Error('No URL returned from server');
       }
 
-      window.open(data.url, '_blank', 'noopener,noreferrer');
-      
-      toast({
-        title: "Opening CV",
-        description: "Your CV will open in a new tab"
-      });
+      setViewUrl(data.url);
     } catch (error) {
       console.error('View error:', error);
       setError(error.message);
@@ -69,9 +68,15 @@ export function CVCard({ cv, onDelete }) {
         title: "Error viewing CV",
         description: error.message || "Failed to view CV"
       });
+      setShowViewDialog(false);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleCloseView = () => {
+    setShowViewDialog(false);
+    setViewUrl(null);
   };
 
   const handleDelete = async () => {
@@ -196,6 +201,7 @@ export function CVCard({ cv, onDelete }) {
         </CardHeader>
       </Card>
 
+      {/* Delete Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -223,6 +229,15 @@ export function CVCard({ cv, onDelete }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* View Dialog */}
+      <ViewCVDialog
+        isOpen={showViewDialog}
+        onClose={handleCloseView}
+        url={viewUrl}
+        filename={cv.filename}
+        isLoading={isLoading}
+      />
     </>
   );
 }

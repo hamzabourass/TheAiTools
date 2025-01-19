@@ -1,11 +1,10 @@
-// app/api/cvs/[id]/view/route.ts
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth/auth';
-import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { s3Client } from '@/lib/s3';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth/auth';
 
 export async function GET(
   request: Request,
@@ -17,7 +16,6 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get CV record
     const cv = await prisma.cv.findUnique({
       where: {
         id: params.id,
@@ -29,19 +27,18 @@ export async function GET(
       return NextResponse.json({ error: 'CV not found' }, { status: 404 });
     }
 
-    // Generate signed URL with specific response headers for encrypted content
     const command = new GetObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME!,
       Key: cv.key,
-      ResponseContentDisposition: `inline; filename="${cv.filename}"`,
-      ResponseContentType: cv.contentType || 'application/octet-stream',
+      ResponseContentDisposition: 'inline', // This makes it view instead of download
+      ResponseContentType: cv.contentType || 'application/pdf', // Set proper content type
     });
 
-    const signedUrl = await getSignedUrl(s3Client, command, {
-      expiresIn: 3600, // 1 hour
+    const url = await getSignedUrl(s3Client, command, {
+      expiresIn: 3600, // URL expires in 1 hour
     });
 
-    return NextResponse.json({ url: signedUrl });
+    return NextResponse.json({ url });
   } catch (error) {
     console.error('Error generating view URL:', error);
     return NextResponse.json(
