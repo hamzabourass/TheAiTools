@@ -7,15 +7,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2, X } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export function ViewCVDialog({
   isOpen,
   onClose,
   url,
   filename,
-  isLoading
+  isLoading,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -24,6 +25,7 @@ export function ViewCVDialog({
   isLoading: boolean;
 }) {
   const { toast } = useToast();
+  const [iframeError, setIframeError] = useState(false);
 
   // Function to determine if we can preview the file
   const canPreview = (filename: string) => {
@@ -60,14 +62,14 @@ export function ViewCVDialog({
 
       toast({
         title: "Download started",
-        description: "Your file will be downloaded shortly"
+        description: "Your file will be downloaded shortly",
       });
     } catch (error) {
       console.error('Download error:', error);
       toast({
         variant: "destructive",
         title: "Download failed",
-        description: "Failed to download the file. Please try again."
+        description: "Failed to download the file. Please try again.",
       });
     }
   };
@@ -91,11 +93,10 @@ export function ViewCVDialog({
                   Download
                 </Button>
               )}
-
             </div>
           </div>
         </DialogHeader>
-        
+
         <div className="flex-1 mt-4 relative">
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -103,11 +104,27 @@ export function ViewCVDialog({
             </div>
           ) : url ? (
             canPreview(filename) ? (
-              <iframe
-                src={url}
-                className="w-full h-full rounded-md border"
-                title={`Preview of ${filename}`}
-              />
+              iframeError ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+                  <p>Failed to load preview.</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleDownload}
+                    className="mt-4"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download to view
+                  </Button>
+                </div>
+              ) : (
+                <iframe
+                  src={url}
+                  className="w-full h-full rounded-md border"
+                  title={`Preview of ${filename}`}
+                  onError={() => setIframeError(true)}
+                />
+              )
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
                 <p>This file type cannot be previewed.</p>
