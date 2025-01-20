@@ -12,7 +12,6 @@ import {
   Download,
   Wand2,
   Brain,
-  ArrowRight
 } from "lucide-react";
 import Link from "next/link";
 
@@ -103,11 +102,11 @@ export  function DataGeneratorSection() {
               <div className="p-4 rounded-lg bg-background border">
                 <p className="text-sm font-medium">Example prompt:</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  "Generate employee data with names, departments, and salary ranges between $50,000-$120,000"
+                  &quot;Generate employee data with names, departments, and salary ranges between $50,000-$120,000&quot;
                 </p>
               </div>
               <Button asChild className="w-full gap-2">
-                <Link href="/generate-data">
+                <Link href="/tools/generate-data">
                   <Wand2 className="w-4 h-4" />
                   Start Generating
                 </Link>
@@ -141,7 +140,7 @@ export  function DataGeneratorSection() {
                   </code>
                   <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
                     <Download className="w-4 h-4" />
-                    <span>10,000 rows generated in 2.3 seconds</span>
+                    <span>10,000 rows generated</span>
                   </div>
                 </div>
               </div>
@@ -155,7 +154,7 @@ export  function DataGeneratorSection() {
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4" />
           <AlertDescription className="text-base">
-            "Just described the data structure I needed in plain English, and the AI generated exactly what I was looking for. Saved me hours of manual work!"
+            &quot;Just described the data structure I needed in plain English, and the AI generated exactly what I was looking for. Saved me hours of manual work!&quot;
           </AlertDescription>
         </div>
       </Alert>
