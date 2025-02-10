@@ -72,7 +72,7 @@ export class CVAnalyzer {
     }
 
     this.model = new ChatOpenAI({
-      modelName: "gpt-4-turbo",
+      modelName: "gpt-3.5-turbo",
       temperature: 0.7,
       openAIApiKey: apiKey || process.env.OPENAI_API_KEY
     });

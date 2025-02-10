@@ -32,7 +32,7 @@ export default function Dashboard() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold">Welcome back, User</h1>
-            <p className="text-muted-foreground">Here's what's happening with your documents.</p>
+            <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your documents.</p>
           </div>
           <div className="space-x-2">
             <Button variant="outline" asChild>
