@@ -15,7 +15,6 @@ import {
   FileUp
 } from "lucide-react";
 import Link from "next/link";
-import { Header } from "@/components/Header";
 
 export default function Dashboard() {
   const [recentActivity] = useState([
@@ -26,7 +25,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50/50">
-      <Header />
       <main className="container mx-auto p-6 space-y-8">
         {/* Welcome Section */}
         <div className="flex justify-between items-center">

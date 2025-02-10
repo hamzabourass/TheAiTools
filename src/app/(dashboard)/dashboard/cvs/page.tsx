@@ -72,7 +72,6 @@ export default function CVManagementPage() {
 
   return (
     <>
-      <Header />
       <div className="container mx-auto p-6 max-w-5xl">
         <div className="space-y-6">
           {/* Header Section */}
