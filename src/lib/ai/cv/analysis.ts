@@ -85,12 +85,15 @@ export class CVAnalyzer {
       openAIApiKey: this.apiKey
     });
 
+    // Structured output through a strict JSON schema (response_format) rather than
+    // function tools: reasoning models such as gpt-6-luna reject function tools on
+    // /v1/chat/completions.
     return {
       requirements: requirementsPrompt.pipe(
-        model.withStructuredOutput(jobRequirementsSchema, { name: "job_requirements" })
+        model.withStructuredOutput(jobRequirementsSchema, { name: "job_requirements", method: "jsonSchema" })
       ),
       evaluation: evaluationPrompt.pipe(
-        model.withStructuredOutput(cvEvaluationSchema, { name: "cv_evaluation" })
+        model.withStructuredOutput(cvEvaluationSchema, { name: "cv_evaluation", method: "jsonSchema" })
       ),
     };
   }
