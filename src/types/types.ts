@@ -1,39 +1,38 @@
 import * as z from "zod"
+import { analysisOptionsSchema, CVAnalysis } from "@/lib/ai/cv/schema"
+
+export const ACCEPTED_CV_EXTENSIONS = [".pdf", ".docx"]
+export const MAX_CV_SIZE = 5 * 1024 * 1024
+export const MIN_JOB_DESCRIPTION_LENGTH = 50
+
+const hasAcceptedExtension = (file: File) =>
+  ACCEPTED_CV_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext))
 
 export const formSchema = z.object({
-  email: z.string().email("Valid email required"),
-  jobDescription: z.string().min(1, "Job description required"),
-  cv: z.any()
-    .refine((file) => file?.length > 0, "CV file required")
-    .refine((file) => file?.[0]?.type === "application/pdf", "Must be a PDF file")
-    .refine((file) => file?.[0]?.size <= 5 * 1024 * 1024, "File size must be less than 5MB")
+  cv: z
+    .custom<File>((file) => typeof File !== "undefined" && file instanceof File, "Please upload your CV")
+    .refine((file) => hasAcceptedExtension(file), "Upload a PDF or DOCX file")
+    .refine((file) => file.size <= MAX_CV_SIZE, "File size must be less than 5MB"),
+  jobDescription: z
+    .string()
+    .trim()
+    .min(MIN_JOB_DESCRIPTION_LENGTH, `Paste the full job description (at least ${MIN_JOB_DESCRIPTION_LENGTH} characters)`),
+  email: z.union([z.literal(""), z.string().trim().email("Enter a valid email address")]),
+  options: analysisOptionsSchema,
 })
 
 export type CVFormData = z.infer<typeof formSchema>
 
-export type AnalysisResult = {
-  technicalSkills: string[];
-  softSkills: string[];
-  matchScore: number;
-  missingSkills: string[];
-  improvements: string[];
-  generatedEmail: {
-    subject: string;
-    body: string;
-  };
-  cv: File | null;
-  status: 'idle' | 'analyzing' | 'complete' | 'error';
+export type AnalysisStatus = "idle" | "analyzing" | "complete" | "error"
+
+export type AnalysisState = {
+  status: AnalysisStatus
+  result: CVAnalysis | null
+  error: string | null
 }
 
-export const initialAnalysisState: AnalysisResult = {
-  technicalSkills: [],
-  softSkills: [],
-  matchScore: 0,
-  missingSkills: [],
-  improvements: [],
-  generatedEmail: {
-    subject: '',
-    body: ''
-  },
-  status: 'idle'
+export const initialAnalysisState: AnalysisState = {
+  status: "idle",
+  result: null,
+  error: null,
 }

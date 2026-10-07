@@ -1,106 +1,98 @@
-import { ChatPromptTemplate, MessagesPlaceholder } from "@langchain/core/prompts";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-const scoringGuidelines = `
-Your scoring should follow these guidelines:
-- Base score starts at 0
-- Each required technical skill present: +5 points
-- Each required soft skill present: +3 points
-- Years of experience match: +15 points
-- Education requirements match: +10 points
-- Industry experience match: +10 points
-- Missing critical skills: -10 points each
-- Insufficient experience: -15 points
-- The final score can exceed 85 if qualifications are strong
-- A score above 60 generally requires meeting most critical requirements
-- Be fair and balanced in your assessment
-`;
+// Note: these are LangChain templates, so literal curly braces must be doubled.
+// Values passed in as variables (CV text, requirement lists) are not parsed.
 
-const responseValidation = `
-Your analysis should include:
-- At least 2 concrete missing skills if the score is below 70
-- At least 3 specific suggestions for improvement
-- A clear explanation of the match score
-- A balanced view of strengths and areas for development
-`;
-
-const emailGuidelines = `
-The generated email (from candidate to HR) must:
-- Be written from the candidate's perspective
-- Highlight the candidate's most relevant experience for the role
-- Reference specific projects that demonstrate required skills
-- Address any potential concerns proactively
-- Show enthusiasm for the role and company
-- Maintain professional tone while being personable
-- Range between 200-250 words
-- Include a clear value proposition
-- End with a strong call to action
-`;
-
-
-export const chatPrompt = ChatPromptTemplate.fromMessages([
+export const requirementsPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `You are a strict professional HR known for providing detailed and thorough feedback. Pay special attention to:
-    
-    1. Skills mentioned in ALL sections of the CV:
-       - Work experience descriptions
-       - Project details
-       - Certifications and courses
-       - Technical skills section
-       - Academic projects
-       - Volunteering/extracurricular activities
-    
-    2. Implicit skills that can be inferred from:
-       - Technologies used in projects
-       - Tools mentioned in work experience
-       - Methods/processes described in achievements
-       - Skills demonstrated through certifications
-       
-    3. Transferable skills from:
-       - Previous roles even if in different industries
-       - Academic background
-       - Certification programs
-       - Project management experience
-    
-    4. Years of Experience if there is big cap it should take this in consideration
-
-    ${scoringGuidelines}
-    ${responseValidation}
-    ${emailGuidelines}
-    `
+    `You are an expert technical recruiter. Extract the hiring requirements from a job description.
+- Separate hard requirements ("required", "must", "you have") from preferred ones ("nice to have", "bonus", "plus").
+- If the posting does not distinguish them, treat the core skills of the role as must-have.
+- Keep each requirement short (a skill, tool, qualification or experience phrase), never a full sentence.
+- Keywords must be copied exactly as they appear in the job description.
+Write requirements in the same language as the job description.`
   ],
   [
     "human",
-    `Analyze this Resume and job description thoroughly:
-    Resume: {cv}
-    Job Description: {jobDescription}
+    `<job_description>
+{jobDescription}
+</job_description>`
+  ],
+]);
 
-    Return a JSON response with:
-    1. technicalSkills: Array of ALL relevant skills including:
-       - Explicitly stated skills
-       - Skills from certificates/training
-       - Skills demonstrated in job experiences
-       - Tools/technologies used in projects
-       - Related or transferable technical skills
-    
-    2. softSkills: Array of ALL soft skills evidenced by:
-       - Achievement descriptions
-       - Leadership roles
-       - Project collaboration
-       - Client interactions
-       - Problem-solving examples
-    
-    3. matchScore: Integer 0-100
-    4. missingSkills: Array of missing requirements
-    5. improvements: Array of specific improvements also include improvements about the users resume highlighting what is currently missing and what is currently present
-    6. generatedEmail: Generate an email to send to the recuiter. Return an Object with subject and body the body should be formatted with spaces like professional emails.
-    7. status: "complete"
+const evidenceGuidelines = `
+Evidence rules:
+- Look for evidence in ALL sections of the CV: work experience, projects, certifications, education,
+  skills lists and volunteering.
+- Count implied skills (e.g. building a React app implies JavaScript) and closely transferable skills as "partial"
+  unless the CV clearly shows the exact skill.
+- Never mark a requirement "met" without evidence you can point to in the CV.
+- Take employment gaps, seniority and recency into account.
+`;
 
-    Ensure NO relevant skills are missed from any section of the CV.`
+const scoringGuidelines = `
+Scoring rules (integers 0-100, judged against THIS job only):
+- experience: compare relevant years and the level of responsibility with what the role asks.
+- education: compare degrees and certifications with what the role asks.
+- softSkills: look for concrete evidence (leading, mentoring, presenting, collaborating), not claims.
+- Do not inflate scores. Be fair, specific and consistent.
+`;
+
+const improvementGuidelines = `
+Improvements must be specific to this CV and this job: say what to add, rewrite or remove and where.
+Cover missing keywords the candidate could honestly add, quantified achievements, ATS-friendly structure,
+and how to address critical gaps honestly. Never suggest claiming skills the candidate does not have.
+`;
+
+const emailGuidelines = `
+When an application email is requested, write it from the candidate to the recruiter:
+- Tone: {tone}.
+- 150-250 words, professional email formatting with blank lines between paragraphs.
+- Lead with the most relevant experience and reference concrete projects or results from the CV.
+- Address the most important gap proactively if there is one.
+- End with a clear call to action and a sign-off using the candidate's name.
+- Never invent experience that is not in the CV.
+`;
+
+export const evaluationPrompt = ChatPromptTemplate.fromMessages([
+  [
+    "system",
+    `You are a senior technical recruiter and career coach. You evaluate a CV against a job's
+requirements and give detailed, honest, actionable feedback.
+
+${evidenceGuidelines}
+${scoringGuidelines}
+${improvementGuidelines}
+${emailGuidelines}
+
+Write every human-readable text field in {language}. Keep skill names and requirement names as given.`
   ],
   [
-    "assistant",
-    "I will conduct an exhaustive analysis, carefully extracting ALL skills from every section of the CV."
+    "human",
+    `Evaluate this CV for the role of {title} ({seniority}).
+
+Required experience: {requiredYears}
+
+Must-have requirements:
+{mustHave}
+
+Nice-to-have requirements:
+{niceToHave}
+
+Education requirements:
+{education}
+
+<cv>
+{cv}
+</cv>
+
+<job_description>
+{jobDescription}
+</job_description>
+
+Return one requirementMatches entry for every must-have and nice-to-have requirement above.
+{emailInstruction}
+{interviewInstruction}`
   ],
-  new MessagesPlaceholder("chat_history")
 ]);

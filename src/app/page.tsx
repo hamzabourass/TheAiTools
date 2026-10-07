@@ -1,582 +1,265 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
-import { 
-  FileText, 
-  MessageSquare, 
-  ArrowRight, 
-  Brain,
-  FileSearch,
-  MailCheck,
-  FileOutput,
-  List,
-  BookOpen,
-  CheckCircle2,
-  Sparkles
-} from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import {
+  ArrowRight,
+  CheckCircle2,
+  CircleDashed,
+  FileUp,
+  Globe,
+  ClipboardList,
+  KeyRound,
+  Lightbulb,
+  ListChecks,
+  Mail,
+  MessagesSquare,
+  Sparkles,
+  Target,
+  XCircle,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import Navbar from "@/components/landing/navbar/Navbar"
+import { Logo } from "@/components/brand/Logo"
+import { ScoreBar, ScoreRing } from "@/components/cv-analyzer/score"
 
-// Animation variants
 const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 }
 
-const staggerChildren = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2
-    }
-  }
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1 } },
 }
 
-const cardHover = {
-  hover: {
-    scale: 1.03,
-    transition: {
-      duration: 0.2
-    }
-  }
-}
+const steps = [
+  { icon: FileUp, title: "Upload your CV", text: "Drop in your CV as a PDF or Word document." },
+  { icon: ClipboardList, title: "Paste the job", text: "Add the job description you are applying for." },
+  { icon: Sparkles, title: "Get your report", text: "See your match score, gaps and exactly what to fix — in about 30 seconds." },
+]
 
-const FeatureCard = ({ icon: Icon, title, description, features, linkHref, linkText }) => (
-  <motion.div
-    variants={fadeInUp}
-    whileHover="hover"
-    // eslint-disable-next-line react/jsx-no-duplicate-props
-    variants={cardHover}
-  >
-    <Card className="h-full">
-      <CardHeader>
-        <motion.div 
-          className="flex items-center gap-2 mb-2"
-          whileHover={{ scale: 1.05 }}
-        >
-          <Icon className="w-5 h-5 text-primary" />
-          <CardTitle>{title}</CardTitle>
-        </motion.div>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <motion.ul 
-          className="space-y-2 mb-6 text-sm"
-          variants={staggerChildren}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {features.map((feature, index) => (
-            <motion.li 
-              key={index} 
-              className="flex items-center gap-2"
-              variants={fadeInUp}
-            >
-              <ArrowRight className="w-4 h-4 text-primary" />
-              {feature}
-            </motion.li>
+const features = [
+  { icon: Target, title: "Explainable match score", text: "A 0-100 score built from requirement coverage, experience, ATS keywords, education and soft skills — not a black box." },
+  { icon: ListChecks, title: "Requirement checklist", text: "Every must-have and nice-to-have from the job, marked met, partial or missing, with the evidence from your CV." },
+  { icon: KeyRound, title: "ATS keyword check", text: "Exact terms from the posting checked against your CV text, so you know what applicant tracking systems will miss." },
+  { icon: Lightbulb, title: "Prioritized improvements", text: "Specific edits ranked by impact, pointing to the section of your CV they apply to." },
+  { icon: MessagesSquare, title: "Interview preparation", text: "Likely questions for this role and your profile, with tips on how to answer them." },
+  { icon: Mail, title: "Tailored application email", text: "An email in the tone you choose — edit it, copy it, or send it from Gmail with your CV attached." },
+]
+
+const faqs = [
+  {
+    q: "How is the match score calculated?",
+    a: "First the job description is broken down into must-have and nice-to-have requirements and keywords. Your CV is then checked against each one. The score combines requirement coverage (35%), experience (30%), ATS keywords (15%), education (10%) and soft skills (10%). Missing must-haves cap the score, so it reflects what a recruiter would actually see.",
+  },
+  {
+    q: "Which file formats are supported?",
+    a: "PDF and DOCX files up to 5MB. Scanned image-only PDFs can't be read — export a text-based PDF from your editor instead.",
+  },
+  {
+    q: "Can I get the report in another language?",
+    a: "Yes. Choose English, French, Spanish, German or Arabic in the analysis options.",
+  },
+  {
+    q: "Is my CV stored?",
+    a: "No. Your CV is used to run the analysis and, if you choose, attached to the email you send. It isn't saved by The AI Tools.",
+  },
+  {
+    q: "Why do I need to sign in with Google?",
+    a: "Signing in keeps the tool protected from abuse and lets you send your application email directly from your own Gmail account.",
+  },
+]
+
+function ResultPreview() {
+  const rows = [
+    { icon: CheckCircle2, color: "text-emerald-500", label: "React & TypeScript", note: "Must-have" },
+    { icon: CheckCircle2, color: "text-emerald-500", label: "REST API design", note: "Must-have" },
+    { icon: CircleDashed, color: "text-amber-500", label: "AWS", note: "Nice-to-have" },
+    { icon: XCircle, color: "text-rose-500", label: "GraphQL", note: "Must-have" },
+  ]
+  return (
+    <div className="relative">
+      <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-primary/20 via-violet-500/10 to-transparent blur-2xl" />
+      <div className="relative rounded-2xl border bg-card p-6 shadow-xl">
+        <div className="flex items-center gap-5">
+          <ScoreRing score={72} size={112} />
+          <div className="space-y-1">
+            <span className="inline-flex rounded-full bg-sky-500/10 px-2.5 py-1 text-xs font-semibold text-sky-600">Good match</span>
+            <p className="font-semibold">Frontend Engineer · Mid-level</p>
+            <p className="text-xs text-muted-foreground">Strong React background; add GraphQL to close the main gap.</p>
+          </div>
+        </div>
+        <div className="mt-6 space-y-3">
+          <ScoreBar label="Requirements coverage" value={78} />
+          <ScoreBar label="ATS keywords" value={64} />
+        </div>
+        <ul className="mt-6 divide-y rounded-xl border">
+          {rows.map((row) => (
+            <li key={row.label} className="flex items-center gap-3 px-3 py-2.5 text-sm">
+              <row.icon className={`h-4 w-4 ${row.color}`} />
+              <span className="flex-1 font-medium">{row.label}</span>
+              <span className="text-xs text-muted-foreground">{row.note}</span>
+            </li>
           ))}
-        </motion.ul>
-        <Button variant="secondary" className="w-full" asChild>
-          <Link href={linkHref}>{linkText}</Link>
-        </Button>
-      </CardContent>
-    </Card>
-  </motion.div>
-)
-
-const ResumeAnalyzerDetails = () => (
-  <motion.div 
-    className="space-y-6"
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true }}
-    variants={staggerChildren}
-  >
-    <motion.h3 
-      className="text-2xl font-semibold"
-      variants={fadeInUp}
-    >
-      Resume Analyzer Features
-    </motion.h3>
-    <div className="grid md:grid-cols-3 gap-6">
-      {[
-        {
-          icon: FileSearch,
-          title: "Smart Analysis",
-          description: "Advanced AI algorithms analyze resumes to identify key skills, experiences, and qualifications. Provides detailed insights about candidate strengths and areas for improvement."
-        },
-        {
-          icon: Brain,
-          title: "Skills Assessment",
-          description: "Automatically extracts and categorizes technical skills, soft skills, and industry expertise. Matches skills against job requirements and industry standards."
-        },
-        {
-          icon: MailCheck,
-          title: "Professional Reports",
-          description: "Generates comprehensive reports and professional emails with feedback and recommendations. Perfect for recruiters and HR professionals."
-        }
-      ].map((item, index) => (
-        <motion.div
-          key={index}
-          variants={fadeInUp}
-          whileHover={{ scale: 1.05 }}
-        >
-          <Card>
-            <CardHeader>
-              <item.icon className="w-5 h-5 text-primary mb-2" />
-              <CardTitle className="text-lg">{item.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {item.description}
-              </p>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ))}
-    </div>
-  </motion.div>
-)
-
-const FAQSection = () => (
-  <motion.section 
-    id="faq" 
-    className="scroll-mt-16 py-16 px-4 max-w-3xl mx-auto"
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true }}
-    variants={staggerChildren}
-  >
-    <motion.h2 
-      className="text-3xl font-semibold text-center mb-8"
-      variants={fadeInUp}
-    >
-      Frequently Asked Questions
-    </motion.h2>
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="q1">
-        <AccordionTrigger>How does the Resume Analyzer work?</AccordionTrigger>
-        <AccordionContent>
-          Our Resume Analyzer uses advanced AI to scan your resume, identify key skills and experiences, 
-          and generate detailed reports. It analyzes both technical skills and soft skills, providing 
-          comprehensive feedback and suggestions for improvement.
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="q2">
-        <AccordionTrigger>Can I convert any ChatGPT conversation to PDF?</AccordionTrigger>
-        <AccordionContent>
-          Yes! The Chat Converter can process any ChatGPT conversation. Simply paste your chat URL 
-          or content, and our tool will organize it into a well-structured PDF with key points, 
-          summaries, and categorized sections.
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="q3">
-        <AccordionTrigger>How accurate is the AI analysis?</AccordionTrigger>
-        <AccordionContent>
-          Our AI models are trained on extensive datasets and continuously improved. They provide 
-          highly accurate analysis with detailed explanations, helping you understand the reasoning 
-          behind each insight.
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  </motion.section>
-)
-
-const TestimonialsSection = () => (
-  <motion.section 
-    id="testimonials" 
-    className="scroll-mt-16 py-16 px-4 bg-secondary/5"
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true }}
-    variants={staggerChildren}
-  >
-    <div className="max-w-6xl mx-auto">
-      <motion.h2 
-        className="text-3xl font-semibold text-center mb-12"
-        variants={fadeInUp}
-      >
-        What Our Users Say
-      </motion.h2>
-      <div className="grid md:grid-cols-3 gap-6">
-        {[
-          {
-            title: "Streamlined Hiring Process",
-            role: "HR Manager",
-            content: "The Resume Analyzer has revolutionized our recruitment process. We save hours on each application while getting more detailed insights into candidates capabilities."
-          },
-          {
-            title: "Perfect Documentation",
-            role: "Technical Lead",
-            content: "Converting ChatGPT conversations to PDFs has made it so much easier to document technical discussions and share knowledge within our team."
-          },
-          {
-            title: "Exceptional Insights",
-            role: "Career Coach",
-            content: "The level of detail in the resume analysis helps my clients understand exactly what they need to improve. It's like having an expert assistant."
-          }
-        ].map((testimonial, index) => (
-          <motion.div
-            key={index}
-            variants={fadeInUp}
-            whileHover={{ scale: 1.05 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">{testimonial.title}</CardTitle>
-                <CardDescription>{testimonial.role}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  &quot;{testimonial.content}&quot;
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+        </ul>
       </div>
     </div>
-  </motion.section>
-)
-
-const CTASection = () => (
-  <motion.section 
-    className="py-20 px-4 bg-primary text-primary-foreground"
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true }}
-    variants={staggerChildren}
-  >
-    <div className="max-w-4xl mx-auto text-center">
-      <motion.h2 
-        className="text-3xl font-semibold mb-4"
-        variants={fadeInUp}
-      >
-        Ready to Get Started?
-      </motion.h2>
-      <motion.p 
-        className="text-xl mb-8 opacity-90 "
-        variants={fadeInUp}
-      >
-        Transform your document workflow today with our AI-powered tools.
-      </motion.p>
-      <motion.div 
-        className="flex gap-4 justify-center"
-        variants={fadeInUp}
-      >
-        <Button size="lg" variant="secondary" asChild>
-          <Link href="/tools/resume-analyzer">Try Resume Analyzer</Link>
-        </Button>
-        <Button size="lg" variant="outline" className="bg-transparent" asChild>
-          <Link href="/tools/chat-converter">Try Chat Converter</Link>
-        </Button>
-      </motion.div>
-    </div>
-  </motion.section>
-)
-
-const ContactSection = () => (
-  <motion.section 
-    id="contact" 
-    className="scroll-mt-16 py-16 px-4 max-w-2xl mx-auto"
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true }}
-    variants={staggerChildren}
-  >
-    <motion.h2 
-      className="text-3xl font-semibold text-center mb-8"
-      variants={fadeInUp}
-    >
-      Get in Touch
-    </motion.h2>
-    <motion.div variants={fadeInUp}>
-      <Card>
-        <CardContent className="pt-6">
-          <form className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-md"
-                  placeholder="Your name"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <input
-                  type="email"
-                  className="w-full p-2 border rounded-md"
-                  placeholder="your@email.com"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Message</label>
-              <textarea
-                className="w-full p-2 border rounded-md h-32"
-                placeholder="How can we help?"
-              />
-            </div>
-            <Button className="w-full">Send Message</Button>
-          </form>
-        </CardContent>
-      </Card>
-    </motion.div>
-  </motion.section>
-)
-
-const ChatConverterDetails = () => (
-  <motion.div 
-    className="space-y-6"
-    initial="hidden"
-    whileInView="visible"
-    viewport={{ once: true }}
-    variants={staggerChildren}
-  >
-    <motion.h3 
-      className="text-2xl font-semibold"
-      variants={fadeInUp}
-    >
-      Chat Converter Features
-    </motion.h3>
-    <Accordion type="single" collapsible className="w-full">
-      <AccordionItem value="conversion">
-        <AccordionTrigger>
-          <div className="flex items-center gap-2">
-            <FileOutput className="w-5 h-5" />
-            Smart Conversion
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <ul className="space-y-2 ml-7">
-            <li>Convert ChatGPT conversations into well-structured PDF documents</li>
-            <li>Maintain formatting and conversation flow</li>
-            <li>Support for code blocks and technical content</li>
-          </ul>
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="insights">
-        <AccordionTrigger>
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5" />
-            AI-Powered Insights
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <ul className="space-y-2 ml-7">
-            <li>Extract key takeaways and important points automatically</li>
-            <li>Generate summaries of technical discussions</li>
-            <li>Identify action items and follow-ups</li>
-          </ul>
-        </AccordionContent>
-      </AccordionItem>
-      <AccordionItem value="organization">
-        <AccordionTrigger>
-          <div className="flex items-center gap-2">
-            <List className="w-5 h-5" />
-            Content Organization
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <ul className="space-y-2 ml-7">
-            <li>Organize Q&A sections for easy reference</li>
-            <li>Create table of contents for longer conversations</li>
-            <li>Tag and categorize different types of content</li>
-          </ul>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
-  </motion.div>
-)
+  )
+}
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="bg-gradient-to-b mt-20 from-white to-gray-50">
-        {/* Hero Section */}
-        <motion.section 
-          className="py-20 px-4 text-center"
-          initial="hidden"
-          animate="visible"
-          variants={staggerChildren}
-        >
-          <motion.h1 
-            className="text-4xl font-bold tracking-tight sm:text-6xl mb-6"
-            variants={fadeInUp}
-          >
-            AI-Powered Document Tools
-          </motion.h1>
-          <motion.p 
-            className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8"
-            variants={fadeInUp}
-          >
-            Transform your resume analysis and chat conversations into actionable insights with our advanced AI tools.
-          </motion.p>
-          <motion.div 
-            className="flex gap-4 justify-center"
-            variants={fadeInUp}
-          >
-            <Button asChild size="lg">
-              <Link href="/tools/resume-analyzer">Get Started</Link>
-            </Button>
-            <Button variant="outline" size="lg" asChild>
-              <Link href="/tools/chat-converter">Try Chat Converter</Link>
-            </Button>
-          </motion.div>
-        </motion.section>
 
-        {/* Main Features */}
-        <motion.section 
-          id="tools" 
-          className="scroll-mt-16 py-16 px-4 max-w-6xl mx-auto"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerChildren}
-        >
-          <motion.h2 
-            className="text-3xl font-semibold text-center mb-12"
-            variants={fadeInUp}
-          >
-            Our Tools
-          </motion.h2>
-          <motion.div 
-            className="grid md:grid-cols-2 gap-8 mb-16"
-            variants={staggerChildren}
-          >
-            <FeatureCard 
-              icon={FileText}
-              title="Resume Analyzer"
-              description="Advanced resume analysis and report generation"
-              features={[
-                "AI-powered skill extraction and analysis",
-                "Comprehensive candidate assessment",
-                "Automated professional report generation",
-                "Customizable email templates"
-              ]}
-              linkHref="/tools/resume-analyzer"
-              linkText="Analyze Resume"
-            />
-            <FeatureCard 
-              icon={MessageSquare}
-              title="Chat Converter"
-              description="Convert ChatGPT conversations into structured PDFs"
-              features={[
-                "Smart conversation parsing and formatting",
-                "Automatic key points extraction",
-                "Q&A organization and categorization",
-                "Professional PDF generation"
-              ]}
-              linkHref="/tools/chat-converter"
-              linkText="Convert Chat"
-            />
-          </motion.div>
-
-          {/* Detailed Sections */}
-          <motion.div 
-            id="features" 
-            className="scroll-mt-16 space-y-16"
-            variants={staggerChildren}
-          >
-            <ResumeAnalyzerDetails />
-            <ChatConverterDetails />
-          </motion.div>
-        </motion.section>
-
-        {/* Why Choose Us */}
-        <motion.section 
-          id="why-us" 
-          className="scroll-mt-16 py-16 px-4 bg-primary/5"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerChildren}
-        >
-          <div className="max-w-6xl mx-auto">
-            <motion.h2 
-              className="text-3xl font-semibold text-center mb-8"
+      {/* Hero */}
+      <section className="relative overflow-hidden pt-16">
+        <div className="absolute inset-0 bg-grid [mask-image:radial-gradient(ellipse_at_top,white,transparent_70%)]" />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 py-20 lg:grid-cols-2 lg:py-28">
+          <motion.div initial="hidden" animate="visible" variants={stagger} className="space-y-6 text-center lg:text-left">
+            <motion.span
               variants={fadeInUp}
+              className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground"
             >
-              Why Choose Our Tools
-            </motion.h2>
-            <motion.div 
-              className="grid md:grid-cols-3 gap-6"
-              variants={staggerChildren}
-            >
-              {[
-                {
-                  icon: Brain,
-                  title: "AI-Powered Analysis",
-                  description: "Advanced machine learning algorithms provide deep insights and accurate analysis"
-                },
-                {
-                  icon: CheckCircle2,
-                  title: "Time-Saving",
-                  description: "Automate manual tasks and get professional results in minutes instead of hours"
-                },
-                {
-                  icon: BookOpen,
-                  title: "Easy to Use",
-                  description: "Intuitive interface and clear workflows make our tools accessible to everyone"
-                }
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <Card className="bg-white">
-                    <CardHeader>
-                      <item.icon className="w-5 h-5 text-primary mb-2" />
-                      <CardTitle className="text-lg">{item.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground">
-                        {item.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              AI-powered CV analysis
+            </motion.span>
+            <motion.h1 variants={fadeInUp} className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+              Know exactly how your CV{" "}
+              <span className="bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">matches the job</span>
+            </motion.h1>
+            <motion.p variants={fadeInUp} className="mx-auto max-w-xl text-lg text-muted-foreground lg:mx-0">
+              Upload your CV, paste a job description and get an explainable match score, a requirement-by-requirement
+              checklist and a prioritized plan to improve your application.
+            </motion.p>
+            <motion.div variants={fadeInUp} className="flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+              <Button size="lg" asChild>
+                <Link href="/tools/resume-analyzer">
+                  Analyze my CV
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <a href="#how-it-works">How it works</a>
+              </Button>
             </motion.div>
-          </div>
-        </motion.section>
+            <motion.div variants={fadeInUp} className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground lg:justify-start">
+              <span className="flex items-center gap-1.5"><FileUp className="h-4 w-4" /> PDF & DOCX</span>
+              <span className="flex items-center gap-1.5"><Globe className="h-4 w-4" /> 5 languages</span>
+              <span className="flex items-center gap-1.5"><Sparkles className="h-4 w-4" /> Results in ~30s</span>
+            </motion.div>
+          </motion.div>
 
-        <TestimonialsSection />
-        <FAQSection />
-        <CTASection />
-        <ContactSection />
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
+            <ResultPreview />
+          </motion.div>
+        </div>
+      </section>
 
-        {/* Footer */}
-        <motion.footer 
-          className="py-8 px-4 text-center text-sm text-muted-foreground"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+      {/* How it works */}
+      <section id="how-it-works" className="scroll-mt-20 border-y bg-muted/30 py-20">
+        <motion.div
+          className="mx-auto max-w-6xl px-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={stagger}
         >
-          <p>© 2025 The AI Tools • Powered by AI</p>
-        </motion.footer>
-      </div>
+          <motion.div variants={fadeInUp} className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight">How it works</h2>
+            <p className="mt-3 text-muted-foreground">Three steps, no setup.</p>
+          </motion.div>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {steps.map((step, index) => (
+              <motion.div key={step.title} variants={fadeInUp} className="relative rounded-2xl border bg-background p-6">
+                <span className="absolute right-5 top-5 text-5xl font-bold text-muted/80">{index + 1}</span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <step.icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-semibold">{step.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{step.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Features */}
+      <section id="features" className="scroll-mt-20 py-20">
+        <motion.div
+          className="mx-auto max-w-6xl px-4"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-80px" }}
+          variants={stagger}
+        >
+          <motion.div variants={fadeInUp} className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight">Everything you need to tailor your application</h2>
+            <p className="mt-3 text-muted-foreground">One analysis, everything a recruiter would notice.</p>
+          </motion.div>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <motion.div
+                key={feature.title}
+                variants={fadeInUp}
+                className="group rounded-2xl border p-6 transition-colors hover:border-primary/40 hover:bg-accent/30"
+              >
+                <feature.icon className="h-6 w-6 text-primary" />
+                <h3 className="mt-4 font-semibold">{feature.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{feature.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="scroll-mt-20 border-t bg-muted/30 py-20">
+        <div className="mx-auto max-w-3xl px-4">
+          <h2 className="text-center text-3xl font-bold tracking-tight">Frequently asked questions</h2>
+          <Accordion type="single" collapsible className="mt-10 rounded-2xl border bg-background px-6">
+            {faqs.map((faq) => (
+              <AccordionItem key={faq.q} value={faq.q} className="last:border-b-0">
+                <AccordionTrigger className="text-left">{faq.q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="px-4 py-20">
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-violet-600 px-6 py-16 text-center text-primary-foreground">
+          <div className="absolute inset-0 bg-grid opacity-10" />
+          <div className="relative">
+            <h2 className="text-balance text-3xl font-bold tracking-tight sm:text-4xl">Ready to see how you match?</h2>
+            <p className="mx-auto mt-3 max-w-xl text-primary-foreground/80">
+              Get your match score and a clear improvement plan for your next application.
+            </p>
+            <Button size="lg" variant="secondary" className="mt-8" asChild>
+              <Link href="/tools/resume-analyzer">
+                Analyze my CV
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row">
+          <Logo />
+          <div className="flex gap-6">
+            <Link href="/terms" className="hover:text-foreground">Terms</Link>
+            <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+          </div>
+          <p>© {new Date().getFullYear()} The AI Tools</p>
+        </div>
+      </footer>
     </div>
   )
 }

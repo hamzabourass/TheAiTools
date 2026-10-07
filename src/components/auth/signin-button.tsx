@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
 import { Loader2 } from "lucide-react"
 
+const DEFAULT_CALLBACK_URL = "/tools/resume-analyzer"
+
+// Only follow same-site relative callback URLs.
+function getCallbackUrl() {
+  const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl")
+  return callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : DEFAULT_CALLBACK_URL
+}
+
 export function SignInButton() {
   const { data: session, status } = useSession()
 
@@ -14,7 +22,7 @@ export function SignInButton() {
         disabled 
         variant="outline" 
         size="lg"
-        className="w-full max-w-xs flex items-center gap-2"
+        className="w-full flex items-center gap-2"
       >
         <Loader2 className="h-5 w-5 animate-spin" />
         <span>Loading...</span>
@@ -23,15 +31,15 @@ export function SignInButton() {
   }
 
   if (session) {
-    redirect("/resume-analyzer")
+    redirect(DEFAULT_CALLBACK_URL)
   }
 
   return (
     <Button
-      onClick={() => signIn("google", { callbackUrl: "/tools/resume-analyzer" })}
+      onClick={() => signIn("google", { callbackUrl: getCallbackUrl() })}
       variant="outline"
       size="lg"
-      className="w-full max-w-xs flex items-center gap-2 shadow-sm hover:shadow transition-all"
+      className="w-full flex items-center gap-2 shadow-sm hover:shadow transition-all"
     >
       {/* Google Icon */}
       <svg

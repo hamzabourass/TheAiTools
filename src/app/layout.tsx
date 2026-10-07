@@ -6,14 +6,14 @@ import { authOptions } from "@/lib/auth/auth";
 import { NotificationProvider } from "@/components/providers/notificationProvider";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
-import dynamic from "next/dynamic";
 
 // Load the Inter font
 const inter = Inter({ subsets: ["latin"] });
 
 // Define metadata
 export const metadata: Metadata = {
-  title: "The Ai Tools",
+  title: "The AI Tools · CV Analyzer",
+  description: "Upload your CV and a job description to get an explainable match score, a requirement checklist and a prioritized plan to improve your application.",
   icons: {
     icon: "/favicon.svg", // Use the resized image
   },
