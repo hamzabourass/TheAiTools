@@ -16,6 +16,20 @@ function getOAuth2Client() {
   return oauth2Client
 }
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function stripLineBreaks(value: string | null) {
+  return (value || '').replace(/[\r\n]+/g, ' ').trim()
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions)
@@ -32,8 +46,6 @@ export async function POST(request: Request) {
       refresh_token: session.refreshToken, // Add the refresh token
     })
 
-    console.log('Refresh Token:', session.refreshToken)
-    console.log('Token Expiry:', new Date(oauth2Client.credentials.expiry_date))
     // Check if the access token has expired
     if (oauth2Client.credentials.expiry_date && Date.now() > oauth2Client.credentials.expiry_date) {
       // Refresh the access token
@@ -51,22 +63,26 @@ export async function POST(request: Request) {
 
     // Parse form data
     const formData = await request.formData()
-    const to = formData.get('to') as string
-    const subject = formData.get('subject') as string
-    const message = formData.get('message') as string
+    const to = stripLineBreaks(formData.get('to') as string)
+    const subject = stripLineBreaks(formData.get('subject') as string)
+    const message = (formData.get('message') as string) || ''
     const cvFile = formData.get('cv') as File | null
 
+    if (!to || !EMAIL_PATTERN.test(to)) {
+      return NextResponse.json({ error: "A valid recipient email is required" }, { status: 400 })
+    }
     if (!cvFile) {
       return NextResponse.json({ error: "CV file is missing" }, { status: 400 })
     }
 
-    // Create a boundary for the multipart message
-    const boundary = "foo_bar_baz"
+    const boundary = `cv_boundary_${Date.now().toString(36)}`
+    const attachmentName = stripLineBreaks(cvFile.name || 'cv.pdf').replace(/"/g, '')
+    const attachmentType = stripLineBreaks(cvFile.type) || 'application/octet-stream'
 
     // Create the email body
     const emailBody = [
       `To: ${to}`,
-      `Subject: ${subject}`,
+      `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
       "MIME-Version: 1.0",
       `Content-Type: multipart/mixed; boundary="${boundary}"`,
       "",
@@ -75,12 +91,12 @@ export async function POST(request: Request) {
       "",
       `<html>
         <body>
-          <p>${message.replace(/\n/g, '<br>')}</p>
+          <p>${escapeHtml(message).replace(/\n/g, '<br>')}</p>
         </body>
       </html>`,
       `--${boundary}`,
-      "Content-Type: application/pdf",
-      'Content-Disposition: attachment; filename="cv.pdf"',
+      `Content-Type: ${attachmentType}`,
+      `Content-Disposition: attachment; filename="${attachmentName}"`,
       "Content-Transfer-Encoding: base64",
       "",
       Buffer.from(await cvFile.arrayBuffer()).toString('base64'),
@@ -107,10 +123,9 @@ export async function POST(request: Request) {
       messageId: res.data.id
     })
 
-  } catch (error: any) {
-    console.error('Gmail API Error:', error?.message)
-    return NextResponse.json({ 
-      error: error?.message || 'Failed to send email'
-    }, { status: 500 })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to send email'
+    console.error('Gmail API Error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

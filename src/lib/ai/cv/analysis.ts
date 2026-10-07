@@ -1,67 +1,58 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { StringOutputParser } from "@langchain/core/output_parsers";
-import { chatPrompt } from "../prompts/cvAnalysisPrompt";
+import { evaluationPrompt, requirementsPrompt } from "../prompts/cvAnalysisPrompt";
+import {
+  AnalysisOptions,
+  CVAnalysis,
+  CVEvaluation,
+  JobRequirements,
+  cvEvaluationSchema,
+  defaultAnalysisOptions,
+  jobRequirementsSchema,
+} from "./schema";
+import {
+  checkKeywords,
+  clampScore,
+  groundExperienceScore,
+  matchScoreCap,
+  overallScore,
+  requirementCoverage,
+} from "./scoring";
 
-// Define types for the analysis result
-interface TechnicalSkillsAnalysis {
-  verifiedSkills: string[];
-  missingCriticalSkills: string[];
-  outdatedSkills: string[];
-  skillEvidence: Record<string, string>;
-}
+const DEFAULT_MODEL = "gpt-4o-mini";
+const MAX_CV_CHARS = 30_000;
+const MAX_JOB_CHARS = 15_000;
 
-interface ExperienceAnalysis {
-  totalRelevantYears: number;
-  gapsIdentified: string[];
-  skillSpecificExperience: Record<string, string>;
-}
-
-interface ScoreCalculation {
-  technicalScore: number;
-  experienceScore: number;
-  educationScore: number;
-  industryScore: number;
-  totalScore: number;
-  detailedCalculation: string;
-}
-
-interface MissingRequirements {
-  criticalGaps: string[];
-  preferredSkills: string[];
-  certificationGaps: string[];
-}
-
-interface Improvements {
-  resumeEnhancements: string[];
-  skillDevelopment: string[];
-  experienceGaps: string[];
-}
-
-interface ApplicationEmail {
-  subject: string;
-  body: string;
-}
-
-interface AnalysisResult {
-  technicalSkillsAnalysis: TechnicalSkillsAnalysis;
-  experienceAnalysis: ExperienceAnalysis;
-  scoreCalculation: ScoreCalculation;
-  missingRequirements: MissingRequirements;
-  improvements: Improvements;
-  applicationEmail: ApplicationEmail;
-  status: string;
-}
-
-class AnalysisError extends Error {
+export class AnalysisError extends Error {
   constructor(message: string, public readonly code: string) {
     super(message);
     this.name = 'AnalysisError';
   }
 }
 
+// Undo the most common PDF extraction artifacts before the text reaches the model.
+export function cleanCVText(text: string) {
+  return text
+    .replace(/\r\n?/g, '\n')
+    .replace(/(\w)-\n(\w)/g, '$1$2') // words hyphenated across lines
+    .replace(/[ \t ]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+const bulletList = (items: string[]) =>
+  items.length ? items.map((item) => `- ${item}`).join('\n') : '- (none stated)';
+
+/**
+ * Two-step CV analysis:
+ * 1. Extract structured requirements from the job description.
+ * 2. Evaluate the CV against each requirement with evidence.
+ * Scores are then computed in code from those results so they stay consistent
+ * between runs instead of being a number the model makes up.
+ */
 export class CVAnalyzer {
-  private readonly model: ChatOpenAI;
-  private readonly chain: any; // TODO: Type this properly when LangChain types are available
+  private readonly requirementsChain;
+  private readonly evaluationChain;
 
   constructor(apiKey?: string) {
     if (!apiKey && !process.env.OPENAI_API_KEY) {
@@ -71,15 +62,18 @@ export class CVAnalyzer {
       );
     }
 
-    this.model = new ChatOpenAI({
-      modelName: "gpt-3.5-turbo",
-      temperature: 0.7,
+    const model = new ChatOpenAI({
+      modelName: process.env.OPENAI_MODEL || DEFAULT_MODEL,
+      temperature: 0,
       openAIApiKey: apiKey || process.env.OPENAI_API_KEY
     });
 
-    this.chain = chatPrompt
-      .pipe(this.model)
-      .pipe(new StringOutputParser());
+    this.requirementsChain = requirementsPrompt.pipe(
+      model.withStructuredOutput(jobRequirementsSchema, { name: "job_requirements" })
+    );
+    this.evaluationChain = evaluationPrompt.pipe(
+      model.withStructuredOutput(cvEvaluationSchema, { name: "cv_evaluation" })
+    );
   }
 
   private validateInputs(cvText: string, jobDescription: string): void {
@@ -97,41 +91,95 @@ export class CVAnalyzer {
     }
   }
 
-  private parseAnalysisResponse(response: string): AnalysisResult {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new AnalysisError(
-        'Failed to extract JSON from analysis response',
-        'INVALID_RESPONSE_FORMAT'
-      );
-    }
-
-    try {
-      return JSON.parse(jsonMatch[0]) as AnalysisResult;
-    } catch (error) {
-      throw new AnalysisError(
-        'Failed to parse analysis results: ' + (error as Error).message,
-        'PARSE_ERROR'
-      );
-    }
+  private extractRequirements(jobDescription: string): Promise<JobRequirements> {
+    return this.requirementsChain.invoke({ jobDescription });
   }
 
-  async analyzeCVAndJob(cvText: string, jobDescription: string): Promise<AnalysisResult> {
+  private evaluate(
+    cvText: string,
+    jobDescription: string,
+    requirements: JobRequirements,
+    options: AnalysisOptions
+  ): Promise<CVEvaluation> {
+    return this.evaluationChain.invoke({
+      cv: cvText,
+      jobDescription,
+      title: requirements.title || 'the advertised position',
+      seniority: requirements.seniority || 'unspecified level',
+      requiredYears: requirements.requiredYears != null ? `${requirements.requiredYears}+ years` : 'not stated',
+      mustHave: bulletList(requirements.mustHave),
+      niceToHave: bulletList(requirements.niceToHave),
+      education: bulletList(requirements.education),
+      tone: options.tone,
+      language: options.language,
+      emailInstruction: options.includeEmail
+        ? 'Also write the application email.'
+        : 'Do NOT write an application email: return empty strings for generatedEmail.',
+      interviewInstruction: options.includeInterviewPrep
+        ? 'Also list 5 likely interview questions with a tip for answering each, based on this CV and its gaps.'
+        : 'Do NOT generate interview questions: return an empty array for interviewQuestions.',
+    });
+  }
+
+  private score(
+    cvText: string,
+    requirements: JobRequirements,
+    evaluation: CVEvaluation,
+    options: AnalysisOptions
+  ): CVAnalysis {
+    const matches = evaluation.requirementMatches;
+    const keywords = checkKeywords(cvText, requirements.keywords);
+    const keywordTotal = keywords.present.length + keywords.missing.length;
+
+    const technicalSkills = requirementCoverage(matches) ?? 50;
+    const scoreBreakdown = {
+      technicalSkills,
+      experience: groundExperienceScore(
+        evaluation.scoreBreakdown.experience,
+        evaluation.experience.relevantYears,
+        requirements.requiredYears
+      ),
+      education: clampScore(evaluation.scoreBreakdown.education),
+      softSkills: clampScore(evaluation.scoreBreakdown.softSkills),
+      keywords: keywordTotal ? clampScore((keywords.present.length / keywordTotal) * 100) : technicalSkills,
+    };
+
+    return {
+      ...evaluation,
+      targetRole: requirements.title,
+      seniority: requirements.seniority,
+      matchScore: overallScore(scoreBreakdown, matchScoreCap(matches)),
+      scoreBreakdown,
+      matchedSkills: matches.filter((m) => m.status !== 'missing').map((m) => m.requirement),
+      missingSkills: matches
+        .filter((m) => m.status === 'missing')
+        .map((m) => ({ skill: m.requirement, importance: m.importance === 'must' ? 'critical' : 'preferred' })),
+      experience: {
+        relevantYears: Math.max(0, evaluation.experience.relevantYears),
+        requiredYears: requirements.requiredYears,
+        summary: evaluation.experience.summary,
+      },
+      keywords,
+      interviewQuestions: options.includeInterviewPrep ? evaluation.interviewQuestions : [],
+      generatedEmail: options.includeEmail ? evaluation.generatedEmail : { subject: '', body: '' },
+    };
+  }
+
+  async analyzeCVAndJob(
+    rawCvText: string,
+    rawJobDescription: string,
+    options: AnalysisOptions = defaultAnalysisOptions
+  ): Promise<CVAnalysis> {
+    this.validateInputs(rawCvText, rawJobDescription);
+
+    const cvText = cleanCVText(rawCvText).slice(0, MAX_CV_CHARS);
+    const jobDescription = rawJobDescription.trim().slice(0, MAX_JOB_CHARS);
+
     try {
-      this.validateInputs(cvText, jobDescription);
-
-      const response = await this.chain.invoke({
-        cv: cvText,
-        jobDescription: jobDescription,
-        chat_history: []
-      });
-
-      return this.parseAnalysisResponse(response);
+      const requirements = await this.extractRequirements(jobDescription);
+      const evaluation = await this.evaluate(cvText, jobDescription, requirements, options);
+      return this.score(cvText, requirements, evaluation, options);
     } catch (error) {
-      if (error instanceof AnalysisError) {
-        throw error;
-      }
-
       throw new AnalysisError(
         'Analysis failed: ' + (error as Error).message,
         'ANALYSIS_ERROR'

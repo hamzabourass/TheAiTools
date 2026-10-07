@@ -1,135 +1,137 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useSession } from "next-auth/react"
-import { CVUploadForm } from "@/components/CVUploadForm"
-import { AnalysisResults } from "@/components/AnalysisResults"
-import { CVFormData, AnalysisResult, initialAnalysisState } from "@/types/types"
 import { redirect } from "next/navigation"
+import { toast } from "sonner"
+import { Loader2, ShieldCheck } from "lucide-react"
 import { Header } from "@/components/Header"
-import { toast } from 'sonner' // Import toast from sonner
+import { Card, CardContent } from "@/components/ui/card"
+import { AnalyzerForm } from "@/components/cv-analyzer/AnalyzerForm"
+import { AnalysisResults } from "@/components/cv-analyzer/AnalysisResults"
+import type { EmailData } from "@/components/cv-analyzer/EmailPanel"
+import { AnalysisState, CVFormData, initialAnalysisState } from "@/types/types"
 
 export default function ResumeAnalyzer() {
   const { data: session, status } = useSession()
-  const [isLoading, setIsLoading] = useState(false)
-  const [analysis, setAnalysis] = useState<AnalysisResult>(initialAnalysisState)
+  const [analysis, setAnalysis] = useState<AnalysisState>(initialAnalysisState)
   const [recipientEmail, setRecipientEmail] = useState("")
-  const [cvFile, setCvFile] = useState<File | null>(null) // Add state for CV file
+  const [cvFile, setCvFile] = useState<File | null>(null)
+  const resultsRef = useRef<HTMLDivElement>(null)
 
   if (status === "loading") {
-    return <div>Loading...</div>
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    )
   }
 
   if (!session) {
-    redirect('/signin')
+    redirect("/signin?callbackUrl=/tools/resume-analyzer")
+  }
+
+  const scrollToResults = () => {
+    // On small screens the results sit below the form.
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    }
   }
 
   async function onSubmit(data: CVFormData) {
-    try {
-      setIsLoading(true)
-      setAnalysis(prev => ({ ...prev, status: 'analyzing' }))
-      setRecipientEmail(data.email)
-      setCvFile(data.cv[0]) // Store the CV file
+    setAnalysis({ status: "analyzing", result: null, error: null })
+    setRecipientEmail(data.email)
+    setCvFile(data.cv)
+    scrollToResults()
 
+    try {
       const formData = new FormData()
-      formData.append("email", data.email)
       formData.append("jobDescription", data.jobDescription)
-      formData.append("cv", data.cv[0])
+      formData.append("cv", data.cv)
+      formData.append("options", JSON.stringify(data.options))
 
-      const response = await fetch("/api/submit", {
-        method: "POST",
-        body: formData
-      })
-
-      if (!response.ok) throw new Error("Analysis failed")
-
-      const result = await response.json()
-      setAnalysis({
-        ...initialAnalysisState,
-        ...result,
-        status: 'complete'
-      })
-    } catch (error) {
-      console.error(error)
-      setAnalysis(prev => ({ ...prev, status: 'error' }))
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSendEmail = async (emailData: { to: string; subject: string; message: string }) => {
-    try {
-      const formData = new FormData()
-      formData.append("to", emailData.to)
-      formData.append("subject", emailData.subject)
-      formData.append("message", emailData.message)
-
-      // Append the CV file if it exists
-      if (cvFile) {
-        formData.append("cv", cvFile)
-      }
-
-      const response = await fetch("/api/send-email", {
-        method: "POST",
-        body: formData,
-      })
+      const response = await fetch("/api/submit", { method: "POST", body: formData })
+      const body = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error("Failed to send email")
+        throw new Error(body?.error || "The analysis could not be completed. Please try again.")
       }
 
-      const result = await response.json()
-      console.log("Email sent successfully:", result)
-
-      // Show success toast
-      toast.success("Email sent successfully!", {
-        position: "top-center",
-        duration: 3000, // 3 seconds
-      })
+      setAnalysis({ status: "complete", result: body, error: null })
+      scrollToResults()
     } catch (error) {
-      console.error("Error sending email:", error)
-
-      // Show error toast
-      toast.error("Failed to send email. Please try again.", {
-        position: "top-center",
-        duration: 3000,
-      })
+      const message = error instanceof Error ? error.message : "Something went wrong. Please try again."
+      setAnalysis({ status: "error", result: null, error: message })
+      toast.error(message)
     }
   }
 
-  return (
-    <div className="min-h-screen dark:from-gray-900 dark:to-gray-800">
-      <Header />
-      <div className="text-center py-8 border-b">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          CV Assistant
-        </h1>
-        <p className="text-gray-600 max-w-2xl mx-auto px-4">
-          Optimize your job application with AI-powered CV analysis
-        </p>
-      </div>
-      <div className="container mx-auto py-10 px-4">
-        <div className="flex justify-center">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start w-full max-w-7xl">
-            {/* Form Section */}
-            <div className="dark:bg-gray-800 p-6 shadow-lg h-fit">
-              <CVUploadForm onSubmit={onSubmit} isLoading={isLoading} />
-            </div>
+  const handleSendEmail = async (email: EmailData) => {
+    if (!cvFile) {
+      toast.error("Upload your CV again to attach it to the email.")
+      return
+    }
+    try {
+      const formData = new FormData()
+      formData.append("to", email.to)
+      formData.append("subject", email.subject)
+      formData.append("message", email.message)
+      formData.append("cv", cvFile)
 
-            {/* Results Section */}
-            <div className="relative">
-              <div className="absolute left-0 top-0 h-full w-px bg-gray-200 dark:bg-gray-700" />
-              <div className="pl-8">
-                <AnalysisResults
-                  analysis={analysis}
-                  recipientEmail={recipientEmail}
-                  onSendEmail={handleSendEmail}
-                />
-              </div>
-            </div>
-          </div>
+      const response = await fetch("/api/send-email", { method: "POST", body: formData })
+      if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        throw new Error(body?.error || "Failed to send email")
+      }
+      toast.success(`Email sent to ${email.to}`)
+    } catch (error) {
+      console.error("Error sending email:", error)
+      toast.error("Failed to send email. Please try again.")
+    }
+  }
+
+  const firstName = session.user?.name?.split(" ")[0]
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <Header />
+
+      <div className="no-print relative overflow-hidden border-b bg-background">
+        <div className="absolute inset-0 bg-grid [mask-image:linear-gradient(to_bottom,white,transparent)]" />
+        <div className="relative mx-auto max-w-7xl px-4 py-10">
+          <p className="text-sm font-medium text-primary">{firstName ? `Hi ${firstName} 👋` : "Welcome 👋"}</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">CV Analyzer</h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">
+            See how your CV stacks up against a specific job — requirement by requirement — and get a clear plan to improve it.
+          </p>
         </div>
       </div>
+
+      <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+          <div className="no-print space-y-4 lg:sticky lg:top-24">
+            <Card>
+              <CardContent className="p-6">
+                <AnalyzerForm onSubmit={onSubmit} isLoading={analysis.status === "analyzing"} />
+              </CardContent>
+            </Card>
+            <p className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 shrink-0" />
+              Your CV is only used to run this analysis and isn&apos;t saved by The AI Tools.
+            </p>
+          </div>
+
+          <div ref={resultsRef} className="scroll-mt-24">
+            <AnalysisResults
+              state={analysis}
+              recipientEmail={recipientEmail}
+              cvFileName={cvFile?.name}
+              onSendEmail={handleSendEmail}
+              onReset={() => setAnalysis(initialAnalysisState)}
+            />
+          </div>
+        </div>
+      </main>
     </div>
   )
 }
