@@ -2,7 +2,7 @@ import * as z from "zod"
 
 // Options the user can pick on the analyzer form.
 export const EMAIL_TONES = ["professional", "enthusiastic", "concise"] as const
-export const OUTPUT_LANGUAGES = ["English", "French", "Spanish", "German", "Arabic"] as const
+export const OUTPUT_LANGUAGES = ["English", "French"] as const
 
 export const analysisOptionsSchema = z.object({
   tone: z.enum(EMAIL_TONES).default("professional"),

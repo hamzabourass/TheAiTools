@@ -10,11 +10,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AnalyzerForm } from "@/components/cv-analyzer/AnalyzerForm"
 import { AnalysisResults } from "@/components/cv-analyzer/AnalysisResults"
 import type { EmailData } from "@/components/cv-analyzer/EmailPanel"
-import { AnalysisState, CVFormData, initialAnalysisState } from "@/types/types"
+import { AnalysisState, CVFormData, ErrorKey, initialAnalysisState } from "@/types/types"
+import { LANG_FOR_OUTPUT, Lang, dictionaries } from "@/lib/i18n/dictionaries"
+import { useI18n } from "@/lib/i18n/I18nProvider"
+
+const isErrorKey = (code: unknown): code is ErrorKey =>
+  typeof code === "string" && code in dictionaries.en.errors
 
 export default function ResumeAnalyzer() {
   const { data: session, status } = useSession()
+  const { t, lang } = useI18n()
   const [analysis, setAnalysis] = useState<AnalysisState>(initialAnalysisState)
+  const [reportLang, setReportLang] = useState<Lang>(lang)
   const [recipientEmail, setRecipientEmail] = useState("")
   const [cvFile, setCvFile] = useState<File | null>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
@@ -42,6 +49,7 @@ export default function ResumeAnalyzer() {
     setAnalysis({ status: "analyzing", result: null, error: null })
     setRecipientEmail(data.email)
     setCvFile(data.cv)
+    setReportLang(LANG_FOR_OUTPUT[data.options.language])
     scrollToResults()
 
     try {
@@ -54,21 +62,24 @@ export default function ResumeAnalyzer() {
       const body = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error(body?.error || "The analysis could not be completed. Please try again.")
+        const code: ErrorKey = isErrorKey(body?.code) ? body.code : "ANALYSIS_FAILED"
+        setAnalysis({ status: "error", result: null, error: code })
+        toast.error(t.errors[code])
+        return
       }
 
       setAnalysis({ status: "complete", result: body, error: null })
       scrollToResults()
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Something went wrong. Please try again."
-      setAnalysis({ status: "error", result: null, error: message })
-      toast.error(message)
+      console.error("Analysis request failed:", error)
+      setAnalysis({ status: "error", result: null, error: "generic" })
+      toast.error(t.errors.generic)
     }
   }
 
   const handleSendEmail = async (email: EmailData) => {
     if (!cvFile) {
-      toast.error("Upload your CV again to attach it to the email.")
+      toast.error(t.analyzer.reuploadCv)
       return
     }
     try {
@@ -79,14 +90,11 @@ export default function ResumeAnalyzer() {
       formData.append("cv", cvFile)
 
       const response = await fetch("/api/send-email", { method: "POST", body: formData })
-      if (!response.ok) {
-        const body = await response.json().catch(() => null)
-        throw new Error(body?.error || "Failed to send email")
-      }
-      toast.success(`Email sent to ${email.to}`)
+      if (!response.ok) throw new Error(`Send failed with status ${response.status}`)
+      toast.success(t.analyzer.emailSent(email.to))
     } catch (error) {
       console.error("Error sending email:", error)
-      toast.error("Failed to send email. Please try again.")
+      toast.error(t.analyzer.emailFailed)
     }
   }
 
@@ -96,20 +104,18 @@ export default function ResumeAnalyzer() {
     <div className="min-h-screen bg-muted/30">
       <Header />
 
-      <div className="no-print relative overflow-hidden border-b bg-background">
+      <div className="relative overflow-hidden border-b bg-background">
         <div className="absolute inset-0 bg-grid [mask-image:linear-gradient(to_bottom,white,transparent)]" />
         <div className="relative mx-auto max-w-7xl px-4 py-10">
-          <p className="text-sm font-medium text-primary">{firstName ? `Hi ${firstName} 👋` : "Welcome 👋"}</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">CV Analyzer</h1>
-          <p className="mt-2 max-w-2xl text-muted-foreground">
-            See how your CV stacks up against a specific job — requirement by requirement — and get a clear plan to improve it.
-          </p>
+          <p className="text-sm font-medium text-primary">{t.analyzer.greeting(firstName)}</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">{t.analyzer.title}</h1>
+          <p className="mt-2 max-w-2xl text-muted-foreground">{t.analyzer.subtitle}</p>
         </div>
       </div>
 
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-          <div className="no-print space-y-4 lg:sticky lg:top-24">
+          <div className="space-y-4 lg:sticky lg:top-24">
             <Card>
               <CardContent className="p-6">
                 <AnalyzerForm onSubmit={onSubmit} isLoading={analysis.status === "analyzing"} />
@@ -117,13 +123,14 @@ export default function ResumeAnalyzer() {
             </Card>
             <p className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-4 w-4 shrink-0" />
-              Your CV is only used to run this analysis and isn&apos;t saved by HireLens.
+              {t.analyzer.privacyNote}
             </p>
           </div>
 
           <div ref={resultsRef} className="scroll-mt-24">
             <AnalysisResults
               state={analysis}
+              reportLang={reportLang}
               recipientEmail={recipientEmail}
               cvFileName={cvFile?.name}
               onSendEmail={handleSendEmail}

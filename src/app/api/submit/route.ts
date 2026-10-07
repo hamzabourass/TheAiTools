@@ -57,6 +57,11 @@ function parseOptions(raw: FormDataEntryValue | null) {
   }
 }
 
+// `code` lets the client show the error in the user's language.
+function errorResponse(code: string, error: string, status = 400) {
+  return NextResponse.json({ code, error }, { status });
+}
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
@@ -66,32 +71,31 @@ export async function POST(request: Request) {
     const options = parseOptions(formData.get('options'));
 
     if (!(cvFile instanceof File) || cvFile.size === 0) {
-      return NextResponse.json({ error: 'Please upload your CV' }, { status: 400 });
+      return errorResponse('CV_MISSING', 'Please upload your CV');
     }
     if (typeof jobDescription !== 'string' || jobDescription.trim().length < MIN_JOB_DESCRIPTION_LENGTH) {
-      return NextResponse.json(
-        { error: `Please paste the full job description (at least ${MIN_JOB_DESCRIPTION_LENGTH} characters)` },
-        { status: 400 }
+      return errorResponse(
+        'JOB_TOO_SHORT',
+        `Please paste the full job description (at least ${MIN_JOB_DESCRIPTION_LENGTH} characters)`
       );
     }
     if (cvFile.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: 'File size exceeds 5MB limit' }, { status: 400 });
+      return errorResponse('FILE_TOO_LARGE', 'File size exceeds 5MB limit');
     }
 
     let cvText: string;
     try {
       cvText = await extractText(cvFile);
     } catch (error) {
-      const message = error instanceof AnalysisError
-        ? error.message
-        : 'We could not read this file. Try exporting your CV to PDF again.';
-      return NextResponse.json({ error: message }, { status: 400 });
+      return error instanceof AnalysisError
+        ? errorResponse(error.code, error.message)
+        : errorResponse('UNREADABLE_FILE', 'We could not read this file. Try exporting your CV to PDF again.');
     }
 
     if (!cvText?.trim()) {
-      return NextResponse.json(
-        { error: 'No text found in your CV. If it is a scanned image, export a text-based PDF instead.' },
-        { status: 400 }
+      return errorResponse(
+        'NO_TEXT',
+        'No text found in your CV. If it is a scanned image, export a text-based PDF instead.'
       );
     }
 
@@ -101,9 +105,6 @@ export async function POST(request: Request) {
     return NextResponse.json(analysis);
   } catch (error) {
     console.error('CV analysis error:', error);
-    return NextResponse.json(
-      { error: 'The analysis could not be completed. Please try again in a moment.' },
-      { status: 500 }
-    );
+    return errorResponse('ANALYSIS_FAILED', 'The analysis could not be completed. Please try again in a moment.', 500);
   }
 }

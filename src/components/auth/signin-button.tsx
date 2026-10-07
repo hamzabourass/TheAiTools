@@ -4,6 +4,7 @@ import { signIn,useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { redirect } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { useI18n } from "@/lib/i18n/I18nProvider"
 
 const DEFAULT_CALLBACK_URL = "/tools/resume-analyzer"
 
@@ -15,6 +16,7 @@ function getCallbackUrl() {
 
 export function SignInButton() {
   const { data: session, status } = useSession()
+  const { t } = useI18n()
 
   if (status === "loading") {
     return (
@@ -25,7 +27,7 @@ export function SignInButton() {
         className="w-full flex items-center gap-2"
       >
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span>Loading...</span>
+        <span>{t.signin.loading}</span>
       </Button>
     )
   }
@@ -64,7 +66,7 @@ export function SignInButton() {
           fill="#EA4335"
         />
       </svg>
-      Continue with Google
+      {t.signin.continueGoogle}
     </Button>
   )
 }

@@ -6,6 +6,8 @@ import { authOptions } from "@/lib/auth/auth";
 import { NotificationProvider } from "@/components/providers/notificationProvider";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
+import { I18nProvider } from "@/lib/i18n/I18nProvider";
+import { getRequestLang } from "@/lib/i18n/server";
 
 // Load the Inter font
 const inter = Inter({ subsets: ["latin"] });
@@ -28,16 +30,19 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
+  const lang = await getRequestLang();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <AuthProvider session={session}>
-          <NotificationProvider>
-            {children}
-            <Toaster />
-          </NotificationProvider>
-        </AuthProvider>
+        <I18nProvider initialLang={lang}>
+          <AuthProvider session={session}>
+            <NotificationProvider>
+              {children}
+              <Toaster />
+            </NotificationProvider>
+          </AuthProvider>
+        </I18nProvider>
       </body>
     </html>
   );

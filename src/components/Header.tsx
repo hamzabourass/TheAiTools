@@ -13,14 +13,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { LogOut, Home, ScanSearch } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/brand/Logo"
+import { LanguageToggle } from "@/components/LanguageToggle"
+import { useI18n } from "@/lib/i18n/I18nProvider"
 
 export function Header() {
   const { data: session } = useSession()
+  const { t } = useI18n()
 
   if (!session) return null
 
   return (
-    <header className="no-print sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         <Logo />
 
@@ -30,8 +33,9 @@ export function Header() {
             className="hidden items-center gap-2 rounded-full bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground sm:flex"
           >
             <ScanSearch className="h-4 w-4" />
-            CV Analyzer
+            {t.nav.cvAnalyzer}
           </Link>
+          <LanguageToggle />
 
           <DropdownMenu>
             <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -51,7 +55,7 @@ export function Header() {
               <DropdownMenuItem asChild>
                 <Link href="/" className="cursor-pointer">
                   <Home className="mr-2 h-4 w-4" />
-                  Home
+                  {t.nav.home}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -60,7 +64,7 @@ export function Header() {
                 onClick={() => signOut({ callbackUrl: "/" })}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Log out
+                {t.nav.logout}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

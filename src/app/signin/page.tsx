@@ -5,15 +5,12 @@ import { Logo } from "@/components/brand/Logo"
 import { motion } from "framer-motion"
 import { CheckCircle2 } from "lucide-react"
 import Link from "next/link"
-
-const highlights = [
-  "Explainable 0-100 match score",
-  "Requirement-by-requirement checklist",
-  "ATS keyword check & prioritized fixes",
-  "Interview prep and a tailored email",
-]
+import { LanguageToggle } from "@/components/LanguageToggle"
+import { useI18n } from "@/lib/i18n/I18nProvider"
 
 export default function Signin() {
+  const { t } = useI18n()
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Left side */}
@@ -27,9 +24,9 @@ export default function Signin() {
             transition={{ duration: 0.6 }}
             className="max-w-md space-y-6"
           >
-            <h2 className="text-4xl font-bold leading-tight">See how your CV matches the job — before the recruiter does.</h2>
+            <h2 className="text-4xl font-bold leading-tight">{t.signin.headline}</h2>
             <ul className="space-y-3">
-              {highlights.map((item, index) => (
+              {t.signin.highlights.map((item, index) => (
                 <motion.li
                   key={item}
                   initial={{ opacity: 0, x: -10 }}
@@ -48,7 +45,8 @@ export default function Signin() {
       </div>
 
       {/* Right side - Sign In */}
-      <div className="flex flex-1 items-center justify-center bg-background p-8">
+      <div className="relative flex flex-1 items-center justify-center bg-background p-8">
+        <LanguageToggle className="absolute right-6 top-6" />
         <motion.div
           className="w-full max-w-sm space-y-8"
           initial={{ opacity: 0, x: 20 }}
@@ -59,22 +57,22 @@ export default function Signin() {
             <Logo />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-semibold tracking-tight">Sign in to analyze your CV</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{t.signin.title}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Use your Google account. You can send application emails straight from your Gmail.
+              {t.signin.subtitle}
             </p>
           </div>
 
           <SignInButton />
 
           <p className="text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{" "}
+            {t.signin.agreeStart}{" "}
             <Link href="/terms" className="font-medium text-primary hover:underline">
-              Terms
+              {t.signin.terms}
             </Link>{" "}
-            and{" "}
+            {t.signin.and}{" "}
             <Link href="/privacy" className="font-medium text-primary hover:underline">
-              Privacy Policy
+              {t.signin.privacy}
             </Link>
           </p>
         </motion.div>

@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
   if (!token) {
     if (path.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ code: 'NOT_AUTHENTICATED', error: 'Not authenticated' }, { status: 401 });
     }
     const loginUrl = new URL('/signin', request.url);
     loginUrl.searchParams.set('callbackUrl', path);

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { AlertCircle, FileText, Loader2, Mail, Settings2, Sparkles, UploadCloud, X } from "lucide-react"
@@ -14,10 +14,13 @@ import { cn } from "@/lib/utils"
 import {
   ACCEPTED_CV_EXTENSIONS,
   CVFormData,
+  ErrorKey,
   MIN_JOB_DESCRIPTION_LENGTH,
   formSchema,
 } from "@/types/types"
 import { EMAIL_TONES, OUTPUT_LANGUAGES, defaultAnalysisOptions } from "@/lib/ai/cv/schema"
+import { OUTPUT_LANGUAGE_FOR } from "@/lib/i18n/dictionaries"
+import { useI18n } from "@/lib/i18n/I18nProvider"
 
 type AnalyzerFormProps = {
   onSubmit: (data: CVFormData) => Promise<void>
@@ -43,17 +46,20 @@ function StepTitle({ step, title, hint }: { step: number; title: string; hint?: 
   )
 }
 
+// Validation messages are translation keys (see formSchema).
 function FieldError({ message }: { message?: string }) {
+  const { t } = useI18n()
   if (!message) return null
   return (
     <p className="flex items-center gap-1.5 text-sm text-destructive">
       <AlertCircle className="h-4 w-4" />
-      {message}
+      {t.errors[message as ErrorKey] ?? message}
     </p>
   )
 }
 
 export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
+  const { t, lang } = useI18n()
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [showOptions, setShowOptions] = useState(false)
@@ -63,9 +69,14 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
     defaultValues: {
       jobDescription: "",
       email: "",
-      options: defaultAnalysisOptions,
+      options: { ...defaultAnalysisOptions, language: OUTPUT_LANGUAGE_FOR[lang] },
     },
   })
+
+  // Switching the interface language also switches the report language.
+  useEffect(() => {
+    form.setValue("options.language", OUTPUT_LANGUAGE_FOR[lang])
+  }, [lang, form])
   const { errors } = form.formState
   const jobDescription = form.watch("jobDescription") || ""
   const includeEmail = form.watch("options.includeEmail")
@@ -76,7 +87,7 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-7" noValidate>
       {/* Step 1: CV */}
       <section className="space-y-3">
-        <StepTitle step={1} title="Upload your CV" hint="PDF or DOCX, up to 5MB" />
+        <StepTitle step={1} title={t.form.step1Title} hint={t.form.step1Hint} />
         <Controller
           control={form.control}
           name="cv"
@@ -102,7 +113,7 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="Remove file"
+                    aria-label={t.form.removeFile}
                     disabled={isLoading}
                     onClick={() => {
                       field.onChange(undefined)
@@ -146,9 +157,9 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
                   <UploadCloud className="h-5 w-5" />
                 </span>
                 <p className="text-sm">
-                  <span className="font-medium text-primary">Click to upload</span> or drag and drop
+                  <span className="font-medium text-primary">{t.form.clickToUpload}</span> {t.form.dragDrop}
                 </p>
-                <p className="text-xs text-muted-foreground">PDF or DOCX · max 5MB</p>
+                <p className="text-xs text-muted-foreground">{t.form.fileHint}</p>
                 <input
                   ref={inputRef}
                   type="file"
@@ -165,21 +176,21 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
 
       {/* Step 2: job description */}
       <section className="space-y-3">
-        <StepTitle step={2} title="Paste the job description" hint="The more complete, the more accurate the analysis" />
+        <StepTitle step={2} title={t.form.step2Title} hint={t.form.step2Hint} />
         <Textarea
           {...form.register("jobDescription")}
-          placeholder="Paste the full job posting: responsibilities, requirements, nice-to-haves…"
+          placeholder={t.form.jdPlaceholder}
           className={cn("min-h-[200px] resize-y", errors.jobDescription && "border-destructive")}
         />
         <div className="flex items-center justify-between">
           <FieldError message={errors.jobDescription?.message} />
           <span
             className={cn(
-              "ml-auto text-xs tabular-nums",
+              "ml-auto shrink-0 whitespace-nowrap pl-2 text-xs tabular-nums",
               jobDescription.trim().length < MIN_JOB_DESCRIPTION_LENGTH ? "text-muted-foreground" : "text-emerald-600"
             )}
           >
-            {jobDescription.trim().length.toLocaleString()} characters
+            {t.form.chars(jobDescription.trim().length)}
           </span>
         </div>
       </section>
@@ -192,7 +203,7 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
           className="flex w-full items-center justify-between text-left"
           aria-expanded={optionsOpen}
         >
-          <StepTitle step={3} title="Options" hint="Language, application email and interview prep" />
+          <StepTitle step={3} title={t.form.step3Title} hint={t.form.step3Hint} />
           <Settings2 className={cn("h-4 w-4 text-muted-foreground transition-transform", optionsOpen && "rotate-90")} />
         </button>
 
@@ -200,7 +211,7 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
           <div className="space-y-4 rounded-xl border bg-muted/30 p-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-xs">Report language</Label>
+                <Label className="text-xs">{t.form.reportLanguage}</Label>
                 <Controller
                   control={form.control}
                   name="options.language"
@@ -211,7 +222,7 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {OUTPUT_LANGUAGES.map((language) => (
-                          <SelectItem key={language} value={language}>{language}</SelectItem>
+                          <SelectItem key={language} value={language}>{t.form.outputLanguages[language]}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -219,18 +230,18 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">Email tone</Label>
+                <Label className="text-xs">{t.form.emailTone}</Label>
                 <Controller
                   control={form.control}
                   name="options.tone"
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange} disabled={!includeEmail}>
-                      <SelectTrigger className="bg-background capitalize">
+                      <SelectTrigger className="bg-background">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {EMAIL_TONES.map((tone) => (
-                          <SelectItem key={tone} value={tone} className="capitalize">{tone}</SelectItem>
+                          <SelectItem key={tone} value={tone}>{t.form.tones[tone]}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -245,8 +256,8 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
               render={({ field }) => (
                 <label className="flex items-center justify-between gap-4">
                   <span>
-                    <span className="block text-sm font-medium">Write an application email</span>
-                    <span className="block text-xs text-muted-foreground">A tailored email you can edit and send</span>
+                    <span className="block text-sm font-medium">{t.form.writeEmail}</span>
+                    <span className="block text-xs text-muted-foreground">{t.form.writeEmailHint}</span>
                   </span>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </label>
@@ -258,8 +269,8 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
               render={({ field }) => (
                 <label className="flex items-center justify-between gap-4">
                   <span>
-                    <span className="block text-sm font-medium">Interview preparation</span>
-                    <span className="block text-xs text-muted-foreground">Likely questions with tips for answering</span>
+                    <span className="block text-sm font-medium">{t.form.interviewPrep}</span>
+                    <span className="block text-xs text-muted-foreground">{t.form.interviewPrepHint}</span>
                   </span>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </label>
@@ -270,7 +281,7 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-1.5 text-xs">
                   <Mail className="h-3.5 w-3.5" />
-                  Recruiter email <span className="font-normal text-muted-foreground">(optional)</span>
+                  {t.form.recruiterEmail} <span className="font-normal text-muted-foreground">{t.form.optional}</span>
                 </Label>
                 <Input
                   {...form.register("email")}
@@ -289,12 +300,12 @@ export function AnalyzerForm({ onSubmit, isLoading }: AnalyzerFormProps) {
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Analyzing…
+            {t.form.analyzing}
           </>
         ) : (
           <>
             <Sparkles className="mr-2 h-5 w-5" />
-            Analyze my CV
+            {t.common.analyzeMyCv}
           </>
         )}
       </Button>
