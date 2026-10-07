@@ -64,7 +64,7 @@ const faqs = [
   },
   {
     q: "Is my CV stored?",
-    a: "No. Your CV is used to run the analysis and, if you choose, attached to the email you send. It isn't saved by The AI Tools.",
+    a: "No. Your CV is used to run the analysis and, if you choose, attached to the email you send. It isn't saved by HireLens.",
   },
   {
     q: "Why do I need to sign in with Google?",
@@ -257,7 +257,7 @@ export default function LandingPage() {
             <Link href="/terms" className="hover:text-foreground">Terms</Link>
             <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
           </div>
-          <p>© {new Date().getFullYear()} The AI Tools</p>
+          <p>© {new Date().getFullYear()} HireLens</p>
         </div>
       </footer>
     </div>

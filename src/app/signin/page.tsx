@@ -20,7 +20,7 @@ export default function Signin() {
       <div className="relative hidden flex-1 overflow-hidden bg-gradient-to-br from-primary to-violet-700 text-primary-foreground md:flex">
         <div className="absolute inset-0 bg-grid opacity-10" />
         <div className="relative z-10 flex w-full flex-col justify-between p-10">
-          <span className="text-lg font-semibold">The AI Tools</span>
+          <span className="text-lg font-semibold">HireLens</span>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -43,7 +43,7 @@ export default function Signin() {
               ))}
             </ul>
           </motion.div>
-          <p className="text-sm text-primary-foreground/70">© {new Date().getFullYear()} The AI Tools</p>
+          <p className="text-sm text-primary-foreground/70">© {new Date().getFullYear()} HireLens</p>
         </div>
       </div>
 

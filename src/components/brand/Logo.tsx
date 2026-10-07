@@ -9,7 +9,7 @@ export function Logo({ className }: { className?: string }) {
         <ScanSearch className="h-4 w-4" />
       </span>
       <span className="text-lg">
-        The AI Tools <span className="hidden font-normal text-muted-foreground sm:inline">· CV Analyzer</span>
+        Hire<span className="text-primary">Lens</span>
       </span>
     </Link>
   )

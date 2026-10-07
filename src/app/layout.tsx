@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 // Define metadata
 export const metadata: Metadata = {
-  title: "The AI Tools · CV Analyzer",
+  title: "HireLens · AI CV Analyzer",
   description: "Upload your CV and a job description to get an explainable match score, a requirement checklist and a prioritized plan to improve your application.",
   icons: {
     icon: "/favicon.svg", // Use the resized image

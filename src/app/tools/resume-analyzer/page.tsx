@@ -117,7 +117,7 @@ export default function ResumeAnalyzer() {
             </Card>
             <p className="flex items-center gap-2 px-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-4 w-4 shrink-0" />
-              Your CV is only used to run this analysis and isn&apos;t saved by The AI Tools.
+              Your CV is only used to run this analysis and isn&apos;t saved by HireLens.
             </p>
           </div>
 

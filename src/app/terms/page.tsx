@@ -10,7 +10,7 @@ const TermsOfServicePage = () => {
       <nav className="border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-semibold">
-            The AI Tools
+            HireLens
           </Link>
           <div className="flex gap-4">
             <Link href="/privacy">
@@ -29,7 +29,7 @@ const TermsOfServicePage = () => {
           <section className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
             <p className="mb-4">
-              Welcome to The AI Tools ("we," "our," or "us"). These Terms of Service ("Terms") govern 
+              Welcome to HireLens ("we," "our," or "us"). These Terms of Service ("Terms") govern 
               your access to and use of our platform and services. By using our services, you agree 
               to be bound by these terms.
             </p>
@@ -37,25 +37,13 @@ const TermsOfServicePage = () => {
 
           <section className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">2. Our Services</h2>
-            <p className="mb-4">The AI Tools platform provides the following services:</p>
+            <p className="mb-4">HireLens provides the following service:</p>
             <div className="pl-6 mb-6">
-              <h3 className="text-lg font-medium mb-2">2.1 Resume Analyzer</h3>
+              <h3 className="text-lg font-medium mb-2">2.1 CV Analyzer</h3>
               <p className="mb-4">
-                Our Resume Analyzer service evaluates CVs against job descriptions, providing 
+                Our CV Analyzer evaluates CVs against job descriptions, providing 
                 detailed compatibility reports and improvement suggestions. Users can generate 
                 and send emails directly through the platform.
-              </p>
-
-              <h3 className="text-lg font-medium mb-2">2.2 ChatGPT Extractor</h3>
-              <p className="mb-4">
-                This tool processes ChatGPT conversation URLs to create comprehensive PDF 
-                documents containing notes, summaries, and Q&A content.
-              </p>
-
-              <h3 className="text-lg font-medium mb-2">2.3 Data Generation Tool</h3>
-              <p className="mb-4">
-                Users can generate synthetic data in CSV format based on their specific 
-                requirements and prompts.
               </p>
             </div>
           </section>
@@ -75,7 +63,7 @@ const TermsOfServicePage = () => {
           <section className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">4. Intellectual Property</h2>
             <p className="mb-4">
-              All content, features, and functionality of the platform are owned by The AI Tools 
+              All content, features, and functionality of the platform are owned by HireLens 
               and are protected by international intellectual property laws. Users may not:
             </p>
             <ul className="list-disc pl-6 mb-4 space-y-2">
@@ -88,7 +76,7 @@ const TermsOfServicePage = () => {
           <section className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">5. Limitation of Liability</h2>
             <p className="mb-4">
-              The AI Tools shall not be liable for any damages arising from:
+              HireLens shall not be liable for any damages arising from:
             </p>
             <ul className="list-disc pl-6 mb-4 space-y-2">
               <li>Use or inability to use our services</li>

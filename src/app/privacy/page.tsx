@@ -10,7 +10,7 @@ const PrivacyPolicyPage = () => {
       <nav className="border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-semibold">
-            The AI Tools
+            HireLens
           </Link>
           <div className="flex gap-4">
             <Link href="/terms">
@@ -29,7 +29,7 @@ const PrivacyPolicyPage = () => {
           <section className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
             <p className="mb-4">
-              At The AI Tools, we are committed to protecting your privacy and handling your data 
+              At HireLens, we are committed to protecting your privacy and handling your data 
               with transparency. This Privacy Policy explains how we collect, use, and safeguard 
               your personal information when you use our platform.
             </p>
@@ -43,7 +43,6 @@ const PrivacyPolicyPage = () => {
             <ul className="list-disc pl-6 mb-6 space-y-2">
               <li>Name and email address</li>
               <li>Resume content and job descriptions</li>
-              <li>ChatGPT conversation data</li>
               <li>Account credentials</li>
             </ul>
 
@@ -63,8 +62,6 @@ const PrivacyPolicyPage = () => {
             <h3 className="text-lg font-medium mb-2">3.1 Service Provision</h3>
             <ul className="list-disc pl-6 mb-6 space-y-2">
               <li>Analyzing resumes and generating compatibility reports</li>
-              <li>Processing ChatGPT conversations and creating PDF documents</li>
-              <li>Generating synthetic data based on specifications</li>
               <li>Maintaining and improving our services</li>
             </ul>
 
