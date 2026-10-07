@@ -1,17 +1,14 @@
-import { PrismaAdapter } from "@auth/prisma-adapter"
 import { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
-import { prisma } from "../prisma"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: "openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly",
+          scope: "openid email profile https://www.googleapis.com/auth/gmail.send",
           prompt: "consent",
           access_type: "offline",
           response_type: "code"
@@ -47,5 +44,5 @@ export const authOptions: NextAuthOptions = {
     signIn: '/signin',
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: true // Keep this for debugging
+  debug: process.env.NODE_ENV === "development"
 }

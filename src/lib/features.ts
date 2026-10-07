@@ -19,8 +19,6 @@ export const DISABLED_API_PREFIXES = [
   "/api/generate",
   "/api/generate-pdf",
   "/api/test",
-  "/api/cvs",
-  "/api/upload-url",
 ]
 
 function matchesPrefix(path: string, prefix: string) {
