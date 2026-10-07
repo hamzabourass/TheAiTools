@@ -18,7 +18,17 @@ import {
   requirementCoverage,
 } from "./scoring";
 
-const DEFAULT_MODEL = "gpt-4o-mini";
+const DEFAULT_MODEL = "gpt-6-luna";
+// Temperature 0 keeps scoring consistent between runs. Some newer models only accept
+// their default temperature (1); those are remembered here after the first rejection.
+const PREFERRED_TEMPERATURE = 0;
+const DEFAULT_TEMPERATURE = 1;
+const modelsWithFixedTemperature = new Set<string>();
+
+function isUnsupportedTemperatureError(error: unknown) {
+  const message = (error as Error)?.message ?? '';
+  return /temperature/i.test(message) && /unsupported|not supported|does not support|only the default/i.test(message);
+}
 const MAX_CV_CHARS = 30_000;
 const MAX_JOB_CHARS = 15_000;
 
@@ -51,8 +61,9 @@ const bulletList = (items: string[]) =>
  * between runs instead of being a number the model makes up.
  */
 export class CVAnalyzer {
-  private readonly requirementsChain;
-  private readonly evaluationChain;
+  private readonly apiKey: string;
+  private readonly modelName: string;
+  private chains: ReturnType<CVAnalyzer['buildChains']>;
 
   constructor(apiKey?: string) {
     if (!apiKey && !process.env.OPENAI_API_KEY) {
@@ -62,18 +73,26 @@ export class CVAnalyzer {
       );
     }
 
+    this.apiKey = (apiKey || process.env.OPENAI_API_KEY)!;
+    this.modelName = process.env.OPENAI_MODEL || DEFAULT_MODEL;
+    this.chains = this.buildChains();
+  }
+
+  private buildChains() {
     const model = new ChatOpenAI({
-      modelName: process.env.OPENAI_MODEL || DEFAULT_MODEL,
-      temperature: 0,
-      openAIApiKey: apiKey || process.env.OPENAI_API_KEY
+      modelName: this.modelName,
+      temperature: modelsWithFixedTemperature.has(this.modelName) ? DEFAULT_TEMPERATURE : PREFERRED_TEMPERATURE,
+      openAIApiKey: this.apiKey
     });
 
-    this.requirementsChain = requirementsPrompt.pipe(
-      model.withStructuredOutput(jobRequirementsSchema, { name: "job_requirements" })
-    );
-    this.evaluationChain = evaluationPrompt.pipe(
-      model.withStructuredOutput(cvEvaluationSchema, { name: "cv_evaluation" })
-    );
+    return {
+      requirements: requirementsPrompt.pipe(
+        model.withStructuredOutput(jobRequirementsSchema, { name: "job_requirements" })
+      ),
+      evaluation: evaluationPrompt.pipe(
+        model.withStructuredOutput(cvEvaluationSchema, { name: "cv_evaluation" })
+      ),
+    };
   }
 
   private validateInputs(cvText: string, jobDescription: string): void {
@@ -92,7 +111,7 @@ export class CVAnalyzer {
   }
 
   private extractRequirements(jobDescription: string): Promise<JobRequirements> {
-    return this.requirementsChain.invoke({ jobDescription });
+    return this.chains.requirements.invoke({ jobDescription });
   }
 
   private evaluate(
@@ -101,7 +120,7 @@ export class CVAnalyzer {
     requirements: JobRequirements,
     options: AnalysisOptions
   ): Promise<CVEvaluation> {
-    return this.evaluationChain.invoke({
+    return this.chains.evaluation.invoke({
       cv: cvText,
       jobDescription,
       title: requirements.title || 'the advertised position',
@@ -175,10 +194,22 @@ export class CVAnalyzer {
     const cvText = cleanCVText(rawCvText).slice(0, MAX_CV_CHARS);
     const jobDescription = rawJobDescription.trim().slice(0, MAX_JOB_CHARS);
 
-    try {
+    const run = async () => {
       const requirements = await this.extractRequirements(jobDescription);
       const evaluation = await this.evaluate(cvText, jobDescription, requirements, options);
       return this.score(cvText, requirements, evaluation, options);
+    };
+
+    try {
+      try {
+        return await run();
+      } catch (error) {
+        // The model rejected temperature 0: remember that and retry once with its default.
+        if (!isUnsupportedTemperatureError(error) || modelsWithFixedTemperature.has(this.modelName)) throw error;
+        modelsWithFixedTemperature.add(this.modelName);
+        this.chains = this.buildChains();
+        return await run();
+      }
     } catch (error) {
       throw new AnalysisError(
         'Analysis failed: ' + (error as Error).message,
